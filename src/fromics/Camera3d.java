@@ -13,7 +13,7 @@ public class Camera3d extends Point{
 	}
 	
 	public Camera3d(Point loc, Point rotations, Point drawPlane) {
-		super(loc.x, loc.y, loc.z);
+		super(loc.X(), loc.Y(), loc.Z());
 		this.rotations = rotations;
 		this.drawPlane = drawPlane;
 	}
@@ -39,15 +39,15 @@ public class Camera3d extends Point{
 	}
 	
 	public double getXRot() {
-		return rotations.x;
+		return rotations.X();
 	}
 	
 	public double getYRot() {
-		return rotations.y;
+		return rotations.Y();
 	}
 
 	public double getZRot() {
-		return rotations.z;
+		return rotations.Z();
 	}
 	
 	public Point getPlanePos() {
@@ -59,20 +59,20 @@ public class Camera3d extends Point{
 	}
 	
 	private Point rotation1(Point p) {
-		Point newp = new Point(Math.cos(rotations.y) * p.x - Math.sin(rotations.y) * p.z,
-				p.y, Math.cos(rotations.y) * p.z + Math.sin(rotations.y) * p.x);
+		Point newp = new Point(Math.cos(rotations.Y()) * p.X() - Math.sin(rotations.Y()) * p.Z(),
+				p.Y(), Math.cos(rotations.Y()) * p.Z() + Math.sin(rotations.Y()) * p.X());
 		return newp;
 	}
 	
 	private Point rotation2(Point p) {
-		Point newp = new Point(p.x, Math.cos(rotations.y) * p.y - Math.sin(rotations.y) * p.z,
-				Math.cos(rotations.y) * p.z + Math.sin(rotations.y) * p.y);
+		Point newp = new Point(p.X(), Math.cos(rotations.Y()) * p.Y() - Math.sin(rotations.Y()) * p.Z(),
+				Math.cos(rotations.Y()) * p.Z() + Math.sin(rotations.Y()) * p.Y());
 		return newp;
 	}
 	
 	private Point rotation3(Point p) {
-		Point newp = new Point(Math.cos(rotations.z) * p.x - Math.sin(rotations.z) * p.y,
-				Math.cos(rotations.z) * p.y + Math.sin(rotations.z) * p.x, p.z);
+		Point newp = new Point(Math.cos(rotations.Z()) * p.X() - Math.sin(rotations.Z()) * p.Y(),
+				Math.cos(rotations.Z()) * p.Y() + Math.sin(rotations.Z()) * p.X(), p.Z());
 		return newp;
 	}
 	

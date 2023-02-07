@@ -37,7 +37,7 @@ public class Projector3d extends Linkable {
 	public static Point project(Point p, Camera3d view) {
 		Point relative = view.relativeLoc(p);
 		Point plane = view.getPlanePos();
-		return new Point(relative.x, relative.y).div(relative.z).mult(plane.z).add(plane.x, plane.y);
+		return new Point(relative.X(), relative.Y()).div(relative.Z()).mult(plane.Z()).add(plane.X(), plane.Y());
 	}
 
 }

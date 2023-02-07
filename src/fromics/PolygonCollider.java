@@ -23,17 +23,17 @@ public abstract class PolygonCollider extends Collidable {
 		minBounds = shape[0].copy();
 		for(int i = 0; i < shape.length; i++) {
 			Point cur = shape[i];
-			if(cur.getX() > maxBounds.getX()) {
-				maxBounds.setX(cur.getX());
+			if(cur.X() > maxBounds.X()) {
+				maxBounds.setX(cur.X());
 			}
-			if(cur.getX() < minBounds.getX()) {
-				minBounds.setX(cur.getX());
+			if(cur.X() < minBounds.X()) {
+				minBounds.setX(cur.X());
 			}
-			if(cur.getY() > maxBounds.getY()) {
-				maxBounds.setY(cur.getY());
+			if(cur.Y() > maxBounds.Y()) {
+				maxBounds.setY(cur.Y());
 			}
-			if(cur.getY() < minBounds.getY()) {
-				minBounds.setY(cur.getY());
+			if(cur.Y() < minBounds.Y()) {
+				minBounds.setY(cur.Y());
 			}
 		}
 	}
@@ -54,45 +54,45 @@ public abstract class PolygonCollider extends Collidable {
 		for (int i = 0; i < shape.length; last = cur, i++) {
             cur = shape[i];
 
-            if (cur.getY() == last.getY()) {
+            if (cur.Y() == last.Y()) {
                 continue;
             }
 
             double leftx;
-            if (cur.getX() < last.getX()) {
-                if (p.x >= last.getX()) {
+            if (cur.X() < last.X()) {
+                if (p.X() >= last.X()) {
                     continue;
                 }
-                leftx = cur.getX();
+                leftx = cur.X();
             } else {
-                if (p.x >= cur.getX()) {
+                if (p.X() >= cur.X()) {
                     continue;
                 }
-                leftx = last.getX();
+                leftx = last.X();
             }
 
             Point test;
-            if (cur.getY() < last.getY()) {
-                if (p.y < cur.getY() || y >= last.getY()) {
+            if (cur.Y() < last.Y()) {
+                if (p.Y() < cur.Y() || Y() >= last.Y()) {
                     continue;
                 }
-                if (p.x < leftx) {
+                if (p.X() < leftx) {
                     hits++;
                     continue;
                 }
                 test = p.copy().sub(cur);
             } else {
-                if (p.y < last.y || p.y >= cur.y) {
+                if (p.Y() < last.Y() || p.Y() >= cur.Y()) {
                     continue;
                 }
-                if (x < leftx) {
+                if (X() < leftx) {
                     hits++;
                     continue;
                 }
                 test = p.copy().sub(last);
             }
 
-            if (test.x < (test.y / (last.y - cur.y) * (last.x - cur.x))) {
+            if (test.X() < (test.Y() / (last.Y() - cur.Y()) * (last.X() - cur.X()))) {
                 hits++;
             }
         }
@@ -129,20 +129,20 @@ public abstract class PolygonCollider extends Collidable {
 	public Point[] absPoints() {
 		Point[] absPoints = new Point[shape.length];
 		for(int i = 0; i < shape.length; i++) {
-			absPoints[i] = new Point(((Math.cos(-ang) * shape[i].x + Math.sin(-ang)*shape[i].y) + x)
-			,((Math.sin(ang) * shape[i].x + Math.cos(ang)*shape[i].y) + y));
+			absPoints[i] = new Point(((Math.cos(-ang) * shape[i].X() + Math.sin(-ang)*shape[i].Y()) + X())
+			,((Math.sin(ang) * shape[i].X() + Math.cos(ang)*shape[i].Y()) + Y()));
 		}
 		return absPoints;
 	}
 
 	@Override
 	public double getWidth() {
-		return maxBounds.getX() - minBounds.getX();
+		return maxBounds.X() - minBounds.X();
 	}
 
 	@Override
 	public double getHeight() {
-		return maxBounds.getY() - minBounds.getY();
+		return maxBounds.Y() - minBounds.Y();
 	}
 
 	@Override
