@@ -3,10 +3,7 @@ package fromics;
 import java.util.function.Consumer;
 
 public class Point {
-		private double[] vals;
-		protected double x;
-		protected double y;
-		protected double z;
+		protected double[] vals;
 		
 		public Point() {
 			this(0, 0);
@@ -16,15 +13,13 @@ public class Point {
 			vals = new double[2];
 			vals[0] = x;
 			vals[1] = y;
-			cal();
 		}
 		
 		public Point(double x, double y, double z) {
 			vals = new double[3];
-			vals[0] = x;
+			vals[0] = y;
 			vals[1] = y;
 			vals[2] = z;
-			cal();
 		}
 		
 		public Point(double[] vals) {
@@ -32,7 +27,6 @@ public class Point {
 				throw new IllegalArgumentException("dimension counts less than 2 not supported");
 			}
 			this.vals = vals;
-			cal();
 		}
 		
 		public Point(int dimensions) {
@@ -43,7 +37,7 @@ public class Point {
 		}
 		
 		public Point copy() {
-			return new Point(vals);
+			return new Point(vals.clone());
 		}
 		
 		@Override
@@ -63,30 +57,29 @@ public class Point {
 			return Math.sqrt(n);
 		}
 		
-		public double getX() {
-			return x;
+		public double X() {
+			return vals[0];
 		}
 		
 		public void setX(double n) {
-			x = n;
 			vals[0] = n;
 		}
 		
-		public double getY() {
-			return y;
+		public double Y() {
+			return vals[1];
 		}
 		
 		public void setY(double n) {
-			y = n;
 			vals[1] = n;
 		}
 		
-		public double getZ() {
-			return z;
+		public double Z() {
+			if(vals.length < 2) throw new IllegalStateException("z-value requires a point with at least 3 dimensions");
+			return vals[2];
 		}
 		
 		public void setZ(double n) {
-			z = n;
+			if(vals.length < 2) throw new IllegalStateException("z-value requires a point with at least 3 dimensions");
 			vals[2] = n;
 		}
 		
@@ -96,7 +89,6 @@ public class Point {
 		
 		public void set(int dim, double n) {
 			vals[dim] = n;
-			cal();
 		}
 		
 		public double dist(Point p) {
@@ -108,7 +100,6 @@ public class Point {
 		
 		public Point normalize() {
 			div(mag());
-			cal();
 			return this;
 		}
 		
@@ -116,7 +107,6 @@ public class Point {
 			for(int i = 0; i < vals.length; i++) {
 				vals[i] /= d;
 			}
-			cal();
 			return this;
 		}
 		
@@ -124,32 +114,19 @@ public class Point {
 			for(int i = 0; i < vals.length; i++) {
 				vals[i] *= d;
 			}
-			cal();
 			return this;
 		}
 		
-		private void cal() {
-			x = vals[0];
-			y = vals[1];
-			if(vals.length > 2) {
-				z = vals[2];
-			}
-		}
-		
 		public Point sub(Point p) {
-			if(p.vals.length != this.vals.length) {
-				throw new IllegalArgumentException("points to compare must have the same number of dimensions");
-			}
-			for(int i = 0; i < vals.length; i++) {
+			for(int i = 0; i < Math.min(vals.length, p.vals.length); i++) {
 				this.vals[i] -= p.vals[i];
 			}
-			cal();
 			return this;
 		}
 		
 		public double dot(Point p) {
-			if(p.vals.length > this.vals.length) {
-				throw new IllegalArgumentException("points to subtract must have the same number of dimensions or less");
+			if(p.vals.length != this.vals.length) {
+				throw new IllegalArgumentException("dot product requires the same number of dimensions between points");
 			}
 			int sum = 0;
 			for(int i = 0; i < vals.length; i++) {
@@ -162,7 +139,6 @@ public class Point {
 			for(int i = 0; i < vals.length; i++) {
 				vals[i] = Math.abs(vals[i]);
 			}
-			cal();
 			return this;
 		}
 		
@@ -170,17 +146,15 @@ public class Point {
 			if(p.vals.length > this.vals.length) {
 				throw new IllegalArgumentException("points to add must have the same number of dimensions or less");
 			}
-			for(int i = 0; i < vals.length; i++) {
+			for(int i = 0; i < Math.min(vals.length, p.vals.length); i++) {
 				this.vals[i] += p.vals[i];
 			}
-			cal();
 			return this;
 		}
 		
 		public Point add(double x, double y) {
 			vals[0] += x;
 			vals[1] += y;
-			cal();
 			return this;
 		}
 		

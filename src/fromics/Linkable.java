@@ -60,23 +60,23 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//this represents a z value for layering, so that higher z values can get drawn on top
-	public double getZ() {return z;}
+	public double getZ() {return get(2);}
 	
 	//returns the x value relative to the screen
 	public double getAbsX() {
 		if(parent == null) {
-			return x;
+			return X();
 		} else {
-			return (Math.cos(parent.ang) * this.x) + (Math.sin(parent.ang) * this.y) + parent.getAbsX();
+			return (Math.cos(parent.ang) * X()) + (Math.sin(parent.ang) * Y()) + parent.getAbsX();
 		}
 	}
 	
 	//returns the y value relative to the screen
 	public double getAbsY() {
 		if(parent == null) {
-			return y;
+			return Y();
 		} else {
-			return (Math.cos(parent.ang) * this.y) + (Math.sin(parent.ang) * this.x) + parent.getAbsY();
+			return (Math.cos(parent.ang) * Y()) + (Math.sin(parent.ang) * X()) + parent.getAbsY();
 		}
 	}
 	
@@ -103,13 +103,13 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//compares z values, so that a sorted list will order then based on drawing order
 	public int compareTo(Linkable o) {
-		switch((int)Math.copySign(1, Double.compare(this.z, o.z))) {
+		switch((int)Math.copySign(1, Double.compare(get(2), o.get(2)))) {
 			case -1:
 				return -1;
 			case 1:
 				return 1;
 			case 0:
-				z += 0.0001;
+				add(new Point(0, 0, 0.001));
 				return 1;
 			default:
 				System.out.println("problem");
@@ -161,8 +161,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
-		return test.getX() < maxBounds.getX() && test.getX() > minBounds.getX() &&
-				test.getY() < maxBounds.getY() && test.getY() > minBounds.getY();
+		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
+				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}
 	
 	//draws a polygon of given points, for convenience of drawing textures, but with ints
@@ -185,8 +185,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		int[] yLocs = new int[points.length];
 		
 		for(int i = 0; i < points.length; i++) {
-			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].getX() + Math.sin(-totalAng) * points[i].getY()) * size + totalX);
-			yLocs[i] = (int)((Math.sin(totalAng) * points[i].getX() + Math.cos(totalAng) * points[i].getY()) * size + totalY);
+			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
+			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
 		}
 		
 //		xLocs[i] = ((Math.cos(-ang - angOff)*relativeX[i] + Math.sin(-ang - angOff)*relativeY[i]) * size + this.x + xOff);
@@ -207,11 +207,11 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	protected void loop(int maxX, int maxY) {
-		if(Math.abs(x) + 10 > maxX) {
-			x *= -0.99;
+		if(Math.abs(X()) + 10 > maxX) {
+			vals[0] *= -0.99;
 		}
-		if(Math.abs(y) + 20 > maxY) {
-			y *= -0.99;
+		if(Math.abs(Y()) + 20 > maxY) {
+			vals[1] *= -0.99;
 		}
 	}
 	

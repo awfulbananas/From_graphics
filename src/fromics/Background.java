@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Component;
 import java.awt.Graphics;
+import java.util.Iterator;
 
 public class Background extends Linkable {
 
@@ -11,19 +12,14 @@ public class Background extends Linkable {
 		super(observer.getWidth() / 2, observer.getHeight() / 2);
 		this.observer = observer;
 	}
-
-	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
-		for(Linkable l : linked) {
-			l.drawAll(g);
-		}
-	}
 	
 	//draws this Linkable, and all its children relative to it's parent
 	public void drawAll(Graphics g) {
 		draw(g, 0, 0, 0);
-		for(Linkable l : linked) {
-			l.drawAll(g);
+		Iterator<Linkable> lItr = linked.iterator();
+		while(lItr.hasNext()) {
+			Linkable next = lItr.next();
+			next.drawAll(g);
 		}
 	}
 	
@@ -36,4 +32,7 @@ public class Background extends Linkable {
 	public Point getMinBounds() {
 		return new Point(observer.getWidth() * -1, observer.getHeight() * -1);
 	}
+
+	@Override
+	protected void draw(Graphics g, double xOff, double yOff, double angOff) {}
 }
