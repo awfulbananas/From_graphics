@@ -6,34 +6,38 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+//a class representing an object with a location and angle in space, usually relative to a parent Linkable, with the ability to be drawn on screen
+//with the exception of Background objects, Linkable objects should always be passed as the argument of .link() or .linkE() to another Linkable before use
+//the z-value can optionally be used for drawing order if linked is sorted
 public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//the angle of this Linkable relative to its parent
 	protected double ang;
-	//the children of this Linkable, needs to be sorted to use z ordering
+	//the children of this Linkable, with locations relative to this one,
+	//which are drawn after the parent
 	protected List<Linkable> linked;
 	//the parent of this Linkable, null if it has none
 	protected Linkable parent;
 	
+	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
 		super(x, y);
 		init();
 	}
 	
+	//constructs a new Linkable at (x, y, z) in 3d space
 	public Linkable(double x, double y, double z) {
 		super(x, y, z);
 		init();
 	}
 	
+	//initializes various values used by this Linkable
 	private void init() {
 		parent = null;
 		linked = new LinkedList<>();
 		ang = 0;
 	}
 	
-	//use this for when something should be removed for any reason
-	public boolean isValid() {return true;}
-	
-	//use this for the update function
+	//updates this Linkable and all of it's children
 	public void updateAll() {
 		update();
 		Iterator<Linkable> lItr = linked.iterator();
@@ -44,25 +48,30 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
-	//use this for the update function
+	//optional method, if implemented, should run any update functionality, 
+	//and should return whether it should be unlinked from it's parent
 	public boolean update() {return false;}
 	
+	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
+	//these bounds aren't enforced by default, but this method can be used for something like screen-looping
 	public Point getMaxBounds() {
 		return parent.getMaxBounds();
 	}
 	
+	//like getMaxBounds(), but returns the point representing the upper left corner of the bounds of the screen
 	public Point getMinBounds() {
 		return parent.getMinBounds();
 	}
 	
+	//returns the location of this Linkable in global space
 	public Point gatAbsLoc() {
 		return new Point(getAbsX(), getAbsY());
 	}
 	
-	//this represents a z value for layering, so that higher z values can get drawn on top
+	//returns the z-value of this Linkable if it has one, or 0 otherwise
 	public double getZ() {return get(2);}
 	
-	//returns the x value relative to the screen
+	//returns the x value of this Linkable in global space
 	public double getAbsX() {
 		if(parent == null) {
 			return X();
@@ -71,7 +80,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
-	//returns the y value relative to the screen
+	//returns the y value of this Linkable in global space
 	public double getAbsY() {
 		if(parent == null) {
 			return Y();
@@ -80,7 +89,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
-	//gets the angle relative to the screen
+	//returns the angle of this Linkable in global space
 	public double getAbsAng() {
 		if(parent == null) {
 			return ang;
@@ -89,19 +98,21 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
-	//links a Linkable to this one, so that it follows it
+	//links a Linkable to this one, so that it follows it,
+	//every Linkable except a Background should be linked to another
 	public void link(Linkable child) {
 		child.parent = this;
 		linked.add(child);
 	}
 	
-	//unlinks a Linkable from this Linkable
+	//unlinks a Linkable from this one, usually called if a Linkable should stop being drawn and updated
 	public void unlink(Linkable child) {
 		child.parent = null;
 		linked.remove(child);
 	}
 	
-	//compares z values, so that a sorted list will order then based on drawing order
+	//compares the z values of two Linkables, altering them to resolve any conflicts,
+	//so that sorting a list will order then based on drawing order
 	public int compareTo(Linkable o) {
 		switch((int)Math.copySign(1, Double.compare(get(2), o.get(2)))) {
 			case -1:
@@ -118,14 +129,15 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		
 	}
 	
+	//returns the number of children of this Linkable
 	public int size() {
 		return linked.size();
 	}
 	
-	//returns the angle of this Linkable
+	//returns the angle of this Linkable relative to it's parent
 	public double getRot() {return ang;}
 	
-	//returns all linked children in  List
+	//returns a list of all children of this Linkable
 	public List<Linkable> getLinked() {return linked;}
 	
 	//returns the parent of this Linkable
@@ -139,6 +151,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
+	//returns an Iterator for all of the children of this Linkable
 	public Iterator<Linkable> getLinkedIterator() {
 		return linked.iterator();
 	}
@@ -146,7 +159,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//the function which draws this Linkable, given a total x location, y location and angle
 	protected abstract void draw(Graphics g, double xOff, double yOff, double angOff);
 	
-	//draws a polygon of given points, for convenience of drawing textures
+	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
+	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, double[] relativeX, double[] relativeY) {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
@@ -160,12 +174,15 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
 	}
 	
+	//returns whether Point test is within the bounds given by minBounds and maxBounds
+	//maybe I should move this to Point
 	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
 		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
 				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}
 	
-	//draws a polygon of given points, for convenience of drawing textures, but with ints
+	//draws a polygon from the points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
+	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, int[] relativeX, int[] relativeY) {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
@@ -179,6 +196,9 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
 	}
 	
+	//draws a polygon from the Points points, with location offset in the x-axis by totalX, and in the y-axis by totalY/
+	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
+	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[points.length];
@@ -189,10 +209,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
 		}
 		
-//		xLocs[i] = ((Math.cos(-ang - angOff)*relativeX[i] + Math.sin(-ang - angOff)*relativeY[i]) * size + this.x + xOff);
-//		yLocs[i] = ((Math.sin(ang + angOff)*relativeX[i] + Math.cos(ang + angOff)*relativeY[i]) * size + this.y + yOff);
-//		System.out.println(Arrays.toString(xLocs));
-		
 		if(closed) {
 			g.drawPolygon(xLocs, yLocs, xLocs.length);
 		} else {
@@ -202,10 +218,14 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
+	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
+	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points) {
 		drawPoints(g, totalX, totalY, totalAng, size, points, true);
 	}
 	
+	//should be used for looping around the edge of the screen, given a maxX and maxY value, 
+	//assuming the origin is in the center of the screen
 	protected void loop(int maxX, int maxY) {
 		if(Math.abs(X()) + 10 > maxX) {
 			vals[0] *= -0.99;

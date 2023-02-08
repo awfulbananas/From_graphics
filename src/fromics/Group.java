@@ -5,15 +5,25 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+//a class representing a group of Linkables of a specific type
+//Linkables of a different type can still be linked to it, but
+//I'm not sure why you would ever do that
 public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
+	//the list of Linkables of type E linked to this one
 	protected List<E> linked;
 
+	//constructs a new Group, with Linkable holder as it's parent
+	//this Linkable has a different constructor because you'll
+	//almost always want to save it in a variable
 	public Group(Linkable holder) {
 		super(0,0);
 		linked = new LinkedList<>();
 		holder.link(this);
 	}
 	
+	//returns the number of children of type E
+	//which also are of type className as given by 
+	//Class.getCononicalName()
 	public int count(String className) {
 		int count = 0;
 		for(E element : linked) {
@@ -24,14 +34,10 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		return count;
 	}
 
+	//draws this Linkable, draws nothing by default
 	@Override
 	protected void draw(Graphics g, double x, double y, double ang) {}
 
-	@Override
-	public boolean isValid() {
-		return true;
-	}
-	
 	//links a Linkable to this one, so that it follows it
 	public void linkE(E child) {
 		if(child != null) {
@@ -40,42 +46,46 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		}
 	}
 	
-	//returns all linked children in  List
+	//returns all linked children of type E
 	public List<E> getLinkedE() {return linked;}
 	
-	//unlinks a Linkable from this Linkable
+	//unlinks a Linkable of type E from this Group
 	public void unlinkE(E child) {
 		child.parent = null;
 		linked.remove(child);
 	}
 
+	//updates this Linkable and all of it's children of type E
 	@Override
-	public boolean update() {
-		for(E l : linked) {
-			l.update();
+	public void updateAll() {
+		update();
+		Iterator<E> itr = linked.iterator();
+		while(itr.hasNext()) {
+			E next = itr.next();
+			if(next.update()) {
+				itr.remove();
+			}
+			
 		}
-		return false;
 	}
 	
+	//returns the number of children of type E
 	@Override
 	public int size() {
 		return linked.size();
 	}
-
-
-	@Override
-	public Linkable parent() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
+	//draws all of this Group's children of type E
+	//doesn't draw this Group by default, so if it should be drawn,
+	//the override this method in addition to .draw()
 	@Override
 	public void drawAll(Graphics g) {
 		for(E l : linked) {
 			l.drawAll(g);
 		}
 	}
-
+	
+	//returns an iterator for all this Group's children of type E
 	@Override
 	public Iterator<E> iterator() {
 		return linked.iterator();

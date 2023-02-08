@@ -2,23 +2,26 @@ package fromics;
 
 import java.awt.Graphics;
 
+//a class representing a Collidable with polygon collision
 public abstract class PolygonCollider extends Collidable {
 	private Point[] shape;
 	Point maxBounds;
 	Point minBounds;
 	protected double size;
 	
+	//constructs a new PolygonCollider at (x, y)
+	//make sure to call .init() at some point if using this constructor
 	protected PolygonCollider(double x, double y) {
 		super(x, y);
 	}
 	
+	//initializes this PolygonCollider with points (xVals, yVals), scaled by size
 	protected void init(double[] xVals, double[] yVals, double size) {
 		this.size = size;
 		shape = new Point[xVals.length];
 		for(int i = 0; i < xVals.length; i++) {
 			shape[i] = new Point(xVals[i] * size, yVals[i] * size);
 		}
-//		System.out.println(Arrays.toString(shape));
 		maxBounds = shape[0].copy();
 		minBounds = shape[0].copy();
 		for(int i = 0; i < shape.length; i++) {
@@ -38,11 +41,15 @@ public abstract class PolygonCollider extends Collidable {
 		}
 	}
 	
+	//constructs a new PolygonCollider at (x, y) with points (xVals, yVals) scaled by size
 	public PolygonCollider(int x, int y, double[] xVals, double[] yVals, double size) {
 		super(x, y);
 		init(xVals, yVals, size);
 	}
 	
+	//returns whether the shape of this polygon contains Point p
+	//I actually just copied this from the Polygon.contains() method in awt
+	//because collision logic is hard
 	public boolean shapeContains(Point p) {
 		if(!Linkable.boundsContain(minBounds, maxBounds, p)) return false;
 		
@@ -99,21 +106,22 @@ public abstract class PolygonCollider extends Collidable {
 
         return ((hits & 1) != 0);
 	}
-
+	
+	//returns the collision type of this Collidable
+	//which is Collidable.TYPE_POLYGON
 	@Override
 	public int getCollisionType() {
 		return 5;
 	}
 	
-	//TODO: add other types of collision
+	//returns whether this Collidabe is colliding with Collidable other
 	@Override
 	public boolean check(Collidable other) {
 		
 		switch(other.getCollisionType()) {
-			case 4:
+			case Collidable.TYPE_POINT:
 				return shapeContains(other.copy().sub(this));
-			case 5:
-//				System.out.println("derp");
+			case Collidable.TYPE_POLYGON:
 				for(Point p : ((PolygonCollider)other).absPoints()) {
 					if(shapeContains(p.copy().sub(this))) return true;
 				}
@@ -126,6 +134,7 @@ public abstract class PolygonCollider extends Collidable {
 		}
 	}
 	
+	//returns the Points of this PolygonCollider in world space
 	public Point[] absPoints() {
 		Point[] absPoints = new Point[shape.length];
 		for(int i = 0; i < shape.length; i++) {
@@ -134,22 +143,14 @@ public abstract class PolygonCollider extends Collidable {
 		}
 		return absPoints;
 	}
-
-	@Override
-	public double getWidth() {
-		return maxBounds.X() - minBounds.X();
-	}
-
-	@Override
-	public double getHeight() {
-		return maxBounds.Y() - minBounds.Y();
-	}
-
+	
+	//draw this PolygonCollider, draw the collision polygon by default
 	@Override
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
-		
+		drawCollider(g, xOff, yOff, angOff);
 	}
 	
+	//draws the Collider of this PolygonCollider using Graphics g
 	protected void drawCollider(Graphics g, double xOff, double yOff, double angOff) {
 		drawPoints(g, xOff, yOff, angOff, 1, shape);
 	}

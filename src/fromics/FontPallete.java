@@ -3,6 +3,8 @@ package fromics;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+//a class which when run, displays a window with a sample of every default font option,
+//which is useful for picking fonts
 
 public class FontPallete {
 	public static void main(String[] args) {
