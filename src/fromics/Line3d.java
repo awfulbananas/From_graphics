@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+//3d doesn't work yet, I'll fix it before adding comments to 3d classes
 public class Line3d extends Shape3d {
 		private Point to;
 		

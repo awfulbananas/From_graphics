@@ -10,6 +10,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 
+//I didn't actually write most of this, so I'll put of commenting it for the most part until later
+//you can probably mostly just use getX(), getY() and getMButtons(), 
+//which are the x and y positions of the mouse, and the mouse buttons current pressed
 public class Mouse implements MouseListener {
 	private Set<Integer> buttons;
 	private Set<Consumer<MouseEvent>> clickedCallbacks;

@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.util.List;
 import java.util.function.Consumer;
 
+//3d doesn't work yet, I'll fix it before adding comments to 3d classes
 public class Lines3d extends Shape3d {
 	//closed should define whether to close the shape made by the lines
 	private final boolean closed;

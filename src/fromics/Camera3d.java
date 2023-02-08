@@ -1,5 +1,6 @@
 package fromics;
 
+//3d doesn't work yet, I'll fix it before adding comments to 3d classes
 public class Camera3d extends Point{
 	public static final double DEFAULT_DRAWING_PLANE_DIST = 3;
 	

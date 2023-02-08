@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 //an object for drawing 3D shapes, all 3D shapes should be linked to a projector
-
+//3d doesn't work yet, I'll fix it before adding more comments to 3d classes
 public class Projector3d extends Linkable {
 	
 	Camera3d view;

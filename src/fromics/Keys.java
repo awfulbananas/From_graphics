@@ -4,7 +4,6 @@ package fromics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -13,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.Queue;
 import java.awt.*;
 
+//I didn't actually write most of this, so I'll put of commenting it for the most part until later
+//you can probably mostly just use the key and codes lists, which contain the keys which are currently pressed
 public class Keys extends KeyAdapter implements KeyListener{
 	public Set<String> keys;
 	public Set<Integer> codes;
