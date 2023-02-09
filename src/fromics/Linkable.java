@@ -184,7 +184,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//draws a polygon from the points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, int[] relativeX, int[] relativeY) {
-		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
@@ -200,7 +199,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
-		g.setColor(Color.WHITE);
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];
 		
@@ -217,6 +215,19 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			}
 		}
 	}
+	
+	//closed determines whether the the first and last Points should be connected
+		protected static void fillPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points) {
+			int[] xLocs = new int[points.length];
+			int[] yLocs = new int[points.length];
+			
+			for(int i = 0; i < points.length; i++) {
+				xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
+				yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
+			}
+			
+			g.fillPolygon(xLocs, yLocs, xLocs.length);
+		}
 	
 	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
