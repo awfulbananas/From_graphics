@@ -45,8 +45,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
         }  
 	}
 	
-	//constructs a new Frindow in the given color space
-	public Frindow(int colorType) {
+	//constructs a new Frindow in the given color space of size (width, height)
+	public Frindow(int colorType, int width, int height) {
 		contentBuffer = new LinkedList<>();
 		frame = new Frame("game");
 		frame.add(this);
@@ -55,20 +55,17 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		this.colorType = colorType;
 		frame.addMouseListener(mouse);
 		frame.addKeyListener(keys);
-		setBounds(0, 0, SCREEN_RECT.width, SCREEN_RECT.height);
-		frame.setBounds(0, 0, SCREEN_RECT.width, SCREEN_RECT.height);
-		System.out.println(SCREEN_RECT);
-		System.out.println(getBounds());
-		System.out.println(getWidth() + ", " + getHeight());
+		setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
+		frame.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		setVisible(false);
 		frame.setVisible(false);
 		new WindowOperator(frame);
 		frame.setResizable(false);
 	}
 	
-	//constructs a new Frindow in TYPE_INT_RGB color space
+	//constructs a new Frindow in TYPE_INT_RGB color space, with width and height based on screen size
 	public Frindow() {
-		this(BufferedImage.TYPE_INT_RGB);
+		this(BufferedImage.TYPE_INT_RGB, SCREEN_RECT.width, SCREEN_RECT.height);
 	}
 	
 	//this should be called before this Frindow is drawn on, 
@@ -100,6 +97,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//adds the given Buffered image to the frame buffer
 	public void addFrame(BufferedImage img) {
 		contentBuffer.add(img);
+		
 	}
 	
 	//adds a new frame to the frame buffer, and returns a Graphics object for drawing on that frame
