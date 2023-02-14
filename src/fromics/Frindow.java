@@ -29,6 +29,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//the color space to be used, TYPE_INT_RGP by default
 	private final int colorType;
 	
+	private Manager game;
+	
+	private Graphics initG;
+	
 	//a class for managing frame closure, so that the window actually closes when you hit the X button
 	private class WindowOperator extends WindowAdapter {
 		Frame f;
@@ -61,6 +65,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		frame.setVisible(false);
 		new WindowOperator(frame);
 		frame.setResizable(false);
+		frame.setFocusable(true);
+		setFocusable(true);
 	}
 	
 	//constructs a new Frindow in TYPE_INT_RGB color space, with width and height based on screen size
@@ -71,11 +77,18 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//this should be called before this Frindow is drawn on, 
 	//this makes the Frindow visible, and sets the number of buffer frames to bufferCount
 	//returns the graphics which should be used when calling .paint()
-	public Graphics init(int bufferCount) {
+	public Graphics init(int bufferCount, Manager game) {
+		this.game = game;
 		for(int i = 0; i < bufferCount; i++) contentBuffer.add(new BufferedImage(getWidth(), getHeight(), colorType));
 		setVisible(true);
 		frame.setVisible(true);
-		return getGraphics();
+		initG = getGraphics();
+		return initG;
+	}
+	
+	//paints the Frindow with the default Graphics
+	public void defPaint() {
+		paint(initG);
 	}
 	
 	//draws the next frame to the screen,
@@ -91,6 +104,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		if(contentBuffer.isEmpty()) {
 			throw new IllegalStateException("cannot draw a frame when the frame buffer is empty");
 		}
+		game.drawAll(getNewFrame());
 		g.drawImage(contentBuffer.remove(), 0, 0, this);
 	}
 	
