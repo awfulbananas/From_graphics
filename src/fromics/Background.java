@@ -1,6 +1,5 @@
 package fromics;
 
-import java.awt.Component;
 import java.awt.Graphics;
 import java.util.Iterator;
 
@@ -8,11 +7,11 @@ import java.util.Iterator;
 //a good way to do it is to have each screen be a class extending Background
 public class Background extends Linkable {
 	
-	//the component, probably a Frindow, which this background is displayed on
-	protected Component observer;
+	//the Frindow which this background is displayed on
+	protected Frindow observer;
 	
 	//constructs a new Background with the given observer
-	public Background(Component observer) {
+	public Background(Frindow observer) {
 		super(observer.getWidth() / 2, observer.getHeight() / 2);
 		this.observer = observer;
 	}
@@ -27,6 +26,14 @@ public class Background extends Linkable {
 			next.drawAll(g);
 		}
 	}
+	
+	//should return true when the next screen should be shown
+	public boolean nextScreen() {
+		return false;
+	}
+	
+	//called whenever this screen stops being shown
+	public void close() {}
 	
 	//returns a Point representing the lower-right corner of the bounds of the screen
 	@Override

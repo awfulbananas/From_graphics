@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +34,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//initializes various values used by this Linkable
 	private void init() {
 		parent = null;
-		linked = new LinkedList<>();
+		linked = new ArrayList<>();
 		ang = 0;
 	}
 	

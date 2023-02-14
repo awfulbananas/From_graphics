@@ -1,8 +1,8 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 //a class representing a group of Linkables of a specific type
@@ -17,7 +17,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//almost always want to save it in a variable
 	public Group(Linkable holder) {
 		super(0,0);
-		linked = new LinkedList<>();
+		linked = new ArrayList<>();
 		holder.link(this);
 	}
 	
@@ -46,6 +46,15 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		}
 	}
 	
+	@Override
+	public void link(Linkable l) {
+		try {
+			linkE((E)l);
+		} catch(IllegalArgumentException e) {
+			super.link(l);
+		}
+	}
+	
 	//returns all linked children of type E
 	public List<E> getLinkedE() {return linked;}
 	
@@ -53,6 +62,15 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	public void unlinkE(E child) {
 		child.parent = null;
 		linked.remove(child);
+	}
+	
+	@Override
+	public void unlink(Linkable l) {
+		try {
+			unlinkE((E)l);
+		} catch(IllegalArgumentException e) {
+			super.unlink(l);
+		}
 	}
 
 	//updates this Linkable and all of it's children of type E
