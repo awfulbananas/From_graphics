@@ -1,6 +1,7 @@
 package effects;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class ParticleEffect extends Linkable {
 			Particle next = pItr.next();
 			next.update();
 //			System.out.println(particles.size());
-			if(next.timer < 0) {
+			if(next.timer <= 0) {
 				pItr.remove();
 			}
 		}
@@ -45,7 +46,7 @@ public class ParticleEffect extends Linkable {
 	@Override
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
 		for(Particle p : particles) {
-			g.setColor(new Color(1f, 1f, 1f, 1f - (float)(pLife - p.timer) / pLife));
+			g.setColor(p.getColor());
 			g.drawRect((int)(p.X() + xOff), (int)(p.Y() + yOff), 1, 1);
 		}
 	}
@@ -53,10 +54,17 @@ public class ParticleEffect extends Linkable {
 	private class Particle extends Point {
 		public Point vec;
 		public int timer;
+		private Color c;
 		
 		public void update() {
 			add(vec);
 			timer--;
+			float val = 1f - (float)(pLife - timer) / pLife;
+			c = new Color(val, val, val);
+		}
+		
+		public Color getColor() {
+			return c;
 		}
 		
 		public Particle(double x, double y, double ang, double speed, int timer) {

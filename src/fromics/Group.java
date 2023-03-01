@@ -46,6 +46,8 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		}
 	}
 	
+	//links Linkbale l to this Linkable, probably only works right if it's of type E
+	//but the error correction might work
 	@Override
 	public void link(Linkable l) {
 		try {
@@ -64,6 +66,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		linked.remove(child);
 	}
 	
+	//unlinks Linkable l from this Group, probably only works if it's of type E
 	@Override
 	public void unlink(Linkable l) {
 		try {
@@ -98,7 +101,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//the override this method in addition to .draw()
 	@Override
 	public void drawAll(Graphics g) {
-		for(E l : linked) {
+		for(Linkable l : linked) {
 			l.drawAll(g);
 		}
 	}

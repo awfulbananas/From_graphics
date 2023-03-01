@@ -40,13 +40,13 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//updates this Linkable and all of it's children
 	public void updateAll() {
-		update();
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
 			Linkable next = lItr.next();
 			if(next.update()) lItr.remove();
 			next.updateAll();
 		}
+		update();
 	}
 	
 	//optional method, if implemented, should run any update functionality, 
@@ -239,10 +239,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//should be used for looping around the edge of the screen, given a maxX and maxY value, 
 	//assuming the origin is in the center of the screen
 	protected void loop(int maxX, int maxY) {
-		if(Math.abs(X()) + 10 > maxX) {
+		if(Math.abs(X()) > maxX) {
 			vals[0] *= -0.99;
 		}
-		if(Math.abs(Y()) + 20 > maxY) {
+		if(Math.abs(Y()) > maxY) {
 			vals[1] *= -0.99;
 		}
 	}

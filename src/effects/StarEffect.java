@@ -1,6 +1,7 @@
 package effects;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -30,7 +31,7 @@ public class StarEffect extends Linkable {
 		this.starFadeTime = starFadeTime;
 		bounds = new Point(width, height);
 		starTimer = starAddTime;
-		stars = new LinkedList<>();
+		stars = new ArrayList<>();
 		r = new Random();
 		for(int i = 0; i < startStarCount; i++) {
 			stars.add(new Star(r.nextInt(width), r.nextInt(height), r.nextInt(starLifetime)));
@@ -53,16 +54,15 @@ public class StarEffect extends Linkable {
 	}
 	
 	@Override
-	protected void draw(Graphics g, double x, double y, double ang) {
+	protected void draw(Graphics g, double x, double y, double ang) { 
 		if(starTimer < 0) {
 			stars.add(new Star(r.nextInt((int)bounds.X()), r.nextInt((int)bounds.Y()), starLifetime));
 			starTimer = starAddTime;
 		} else {
 			starTimer--;
 		}
-		Iterator<Star> sts = stars.iterator();
-		while(sts.hasNext()) {
-			Star next = sts.next();		
+		for(int i = 0; i < stars.size(); i++) {
+			Star next = stars.get(i);	
 			float mag = Math.min(1f, Math.min((float)next.timer / (float)starFadeTime, (float)(starLifetime - next.timer) / (float)starFadeTime));
 			g.setColor(new Color(mag, mag, mag));
 			g.drawRect((int)next.X(), (int)next.Y(), starSize, starSize);		

@@ -73,6 +73,15 @@ public class Point {
 		return Math.sqrt(n);
 	}
 	
+	//returns the distance from the origin of this point squared, and runs faster than mag()
+	public double sMag() {
+		double n = 0;
+		for(double d : vals) {
+			n += d * d;
+		}
+		return n;
+	}
+	
 	//return this Point's x-value
 	public double X() {
 		return vals[0];
@@ -123,11 +132,15 @@ public class Point {
 		return p.copy().sub(this).mag();
 	}
 	
+	//sets this point to a vector of length 1 going in the same direction
+	//then returns this point
 	public Point normalize() {
 		div(mag());
 		return this;
 	}
 	
+	//divides all this Point's values by d
+	//returnsthis Point
 	public Point div(double d) {
 		for(int i = 0; i < vals.length; i++) {
 			vals[i] /= d;
@@ -135,6 +148,8 @@ public class Point {
 		return this;
 	}
 	
+	//multiplies all this Point's valued by d 
+	//returns this Point
 	public Point mult(double d) {
 		for(int i = 0; i < vals.length; i++) {
 			vals[i] *= d;
@@ -142,6 +157,8 @@ public class Point {
 		return this;
 	}
 	
+	//subtracts Point p from this Point. if p has a different number of dimensions,
+	//then only the shared dimensions are subtracted
 	public Point sub(Point p) {
 		for(int i = 0; i < Math.min(vals.length, p.vals.length); i++) {
 			this.vals[i] -= p.vals[i];
@@ -149,6 +166,10 @@ public class Point {
 		return this;
 	}
 	
+	//returns the dot product between this Point and Point p
+	//if one of the Points is normalized, this can be thought of as getting
+	//the other Point's distance along the axis along that Point
+	//if both Points are normalized, this can be used to get the cosine of the angle between them
 	public double dot(Point p) {
 		if(p.vals.length != this.vals.length) {
 			throw new IllegalArgumentException("dot product requires the same number of dimensions between points");
@@ -160,6 +181,8 @@ public class Point {
 		return sum;
 	}
 	
+	//sets all of this Point's values to the absolute of that value
+	//returns this Point
 	public Point abs() {
 		for(int i = 0; i < vals.length; i++) {
 			vals[i] = Math.abs(vals[i]);
@@ -167,6 +190,9 @@ public class Point {
 		return this;
 	}
 	
+	//adds Point p to this Point. if p has a different number of dimensions to this one,
+	//only the shared dimensions are added.
+	//returns this Point
 	public Point add(Point p) {
 		if(p.vals.length > this.vals.length) {
 			throw new IllegalArgumentException("points to add must have the same number of dimensions or less");
@@ -177,12 +203,16 @@ public class Point {
 		return this;
 	}
 	
+	//adds x to the x-value of this Point, and y to the y-value of this Point
 	public Point add(double x, double y) {
 		vals[0] += x;
 		vals[1] += y;
 		return this;
 	}
 	
+	//returns whether this Point is equal to Point p
+	//only returns true if they have the same number of dimensions,
+	//and all values are equal between them
 	public boolean equals(Point p) {
 		if(p.vals.length != this.vals.length) {
 			return false;
@@ -195,6 +225,7 @@ public class Point {
 		return true;
 	}
 	
+	//accepts this Point with Consumer<Point> c
 	public void transform(Consumer<Point> c) {
 		c.accept(this);
 	}

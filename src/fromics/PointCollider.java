@@ -22,9 +22,10 @@ public abstract class PointCollider extends Collidable {
 	public boolean check(Collidable other) {
 		switch(other.getCollisionType()) {
 			case Collidable.TYPE_OVAL:
-				return other.copy().sub(this).mag() < ((OvalCollider)other).getRadius();
+				double s = ((OvalCollider)other).getRadius();
+				return other.copy().sub(this).sMag() < s * s;
 			case Collidable.TYPE_POINT:
-				return copy().sub(other).mag() == 0;
+				return copy().sub(other).sMag() == 0;
 			case Collidable.TYPE_POLYGON:
 				return other.check(this);
 			default:

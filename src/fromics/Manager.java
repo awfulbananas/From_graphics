@@ -9,7 +9,7 @@ import java.util.TimerTask;
 //it's linkable so that you could have different managers for sub-menus or something similar
 //I usually put my main method in here
 public abstract class Manager extends Background {
-	public static final int FRAME_DELAY = 10;
+	public static final int FRAME_DELAY = 15;
 	public static final int START_DELAY = 15;
 	protected Background[] screens;
 	private int screen;
@@ -58,11 +58,12 @@ public abstract class Manager extends Background {
 
 	private class Run extends TimerTask {
 		public void run() {
-			Thread drawer = new Thread(() -> {
-				observer.defPaint();
-			});
-			drawer.start();
 			updateAll();
+//			Thread drawer = new Thread(() -> {
+//				observer.defPaint();
+//			});
+//			drawer.start();
+			observer.defPaint();
 		}
 	}
 
