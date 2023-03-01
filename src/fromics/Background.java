@@ -20,10 +20,8 @@ public class Background extends Linkable {
 	//relative to this background
 	public void drawAll(Graphics g) {
 		draw(g, 0, 0, 0);
-		Iterator<Linkable> lItr = linked.iterator();
-		while(lItr.hasNext()) {
-			Linkable next = lItr.next();
-			next.drawAll(g);
+		for(int i = 0; i < linked.size(); i++) {
+			linked.get(i).drawAll(g);
 		}
 	}
 	
