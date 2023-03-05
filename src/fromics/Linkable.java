@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 //a class representing an object with a location and angle in space, usually relative to a parent Linkable, with the ability to be drawn on screen
 //with the exception of Background objects, Linkable objects should always be passed as the argument of .link() or .linkE() to another Linkable before use
@@ -18,6 +19,11 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	protected List<Linkable> linked;
 	//the parent of this Linkable, null if it has none
 	protected Linkable parent;
+	//whether this Linkable is updating, used to manage
+	//when new Linkables are Linked
+	protected boolean updating;
+	//only used if a child tries to Link a new Linkable while this one is updating
+	protected Queue<Linkable> linkQueue;
 	
 	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
@@ -33,13 +39,16 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//initializes various values used by this Linkable
 	private void init() {
+		updating = false;
 		parent = null;
+		linkQueue = new LinkedList<>();
 		linked = new ArrayList<>();
 		ang = 0;
 	}
 	
 	//updates this Linkable and all of it's children
 	public void updateAll() {
+		updating = true;
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
 			Linkable next = lItr.next();
@@ -47,6 +56,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			next.updateAll();
 		}
 		update();
+		updating = false;
+		while(!linkQueue.isEmpty()) {
+			link(linkQueue.remove());
+		}
 	}
 	
 	//optional method, if implemented, should run any update functionality, 
@@ -102,8 +115,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//links a Linkable to this one, so that it follows it,
 	//every Linkable except a Background should be linked to another
 	public void link(Linkable child) {
-		child.parent = this;
-		linked.add(child);
+		if(updating) {
+			linkQueue.add(child);
+		} else {
+			child.parent = this;
+			linked.add(child);
+		}
 	}
 	
 	//unlinks a Linkable from this one, usually called if a Linkable should stop being drawn and updated
