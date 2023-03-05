@@ -225,6 +225,11 @@ public class Point {
 		return true;
 	}
 	
+	//returns the angle from (0, 0) to this Point
+	public double ang() {
+		return Math.atan2(Y(), X());
+	}
+	
 	//accepts this Point with Consumer<Point> c
 	public void transform(Consumer<Point> c) {
 		c.accept(this);

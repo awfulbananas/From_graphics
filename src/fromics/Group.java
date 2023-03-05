@@ -111,4 +111,16 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	public Iterator<E> iterator() {
 		return linked.iterator();
 	}
+	
+	//returns a String representation of this group in the format
+	//(x, y), [<linked1.toString()>, <linked2.toString()>, ... ,<linkedn.toString()>]
+	@Override
+	public String toString() {
+		String s = super.toString() + ", [";
+		for(E i : linked) {
+			s += i.toString() +", ";
+		}
+		s = s.substring(0, s.length() - 2) + "]";
+		return s;
+	}
 }
