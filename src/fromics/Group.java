@@ -79,6 +79,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//updates this Linkable and all of it's children of type E
 	@Override
 	public void updateAll() {
+		updating = true;
 		update();
 		Iterator<E> itr = linked.iterator();
 		while(itr.hasNext()) {
@@ -86,7 +87,10 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 			if(next.update()) {
 				itr.remove();
 			}
-			
+		}
+		updating = false;
+		while(!linkQueue.isEmpty()) {
+			link(linkQueue.remove());
 		}
 	}
 	
@@ -110,5 +114,17 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	@Override
 	public Iterator<E> iterator() {
 		return linked.iterator();
+	}
+	
+	//returns a String representation of this group in the format
+	//(x, y), [<linked1.toString()>, <linked2.toString()>, ... ,<linkedn.toString()>]
+	@Override
+	public String toString() {
+		String s = super.toString() + ", [";
+		for(E i : linked) {
+			s += i.toString() +", ";
+		}
+		s = s.substring(0, s.length() - 2) + "]";
+		return s;
 	}
 }
