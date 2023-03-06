@@ -116,8 +116,6 @@ public abstract class PolygonCollider extends Collidable {
 					if(((PolygonCollider)other).shapeContains(p.copy().sub(other))) return true;
 				}
 				return false;
-			case Collidable.TYPE_OVAL:
-				
 			default:
 				return false;
 		}
