@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.util.Arrays;
 
 //a class representing a Collidable with polygon collision
 public abstract class PolygonCollider extends Collidable {
@@ -26,6 +27,9 @@ public abstract class PolygonCollider extends Collidable {
 		minBounds = shape[0].copy();
 		for(int i = 0; i < shape.length; i++) {
 			Point cur = shape[i];
+			if(Double.isNaN(cur.X()) || Double.isNaN(cur.Y())) {
+				continue;
+			}
 			if(cur.X() > maxBounds.X()) {
 				maxBounds.setX(cur.X());
 			}
@@ -59,7 +63,7 @@ public abstract class PolygonCollider extends Collidable {
 		Point cur;
 		
 		for (int i = 0; i < shape.length; last = cur, i++) {
-            cur = shape[i];
+            cur = shape[i].copy();
 
             if (cur.Y() == last.Y()) {
                 continue;
@@ -117,7 +121,6 @@ public abstract class PolygonCollider extends Collidable {
 	//returns whether this Collidabe is colliding with Collidable other
 	@Override
 	public boolean check(Collidable other) {
-		
 		switch(other.getCollisionType()) {
 			case Collidable.TYPE_POINT:
 				return shapeContains(other.copy().sub(this));
