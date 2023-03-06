@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 //with operations for manipulating them
 
 //most operations affect the point they're called on, so for non-destructive operations, use .copy()
+
+//when clockwise or counterclockwise is mentioned, keep in mind that in java, positive y is down, not up
 public class Point {
 	//the array of values for the location of the Point,
 	//from lowest dimension to highest, 
@@ -207,6 +209,49 @@ public class Point {
 	public Point add(double x, double y) {
 		vals[0] += x;
 		vals[1] += y;
+		return this;
+	}
+	
+	//multiplies this Point by Point o as if they are complex numbers in the
+	//format x + yi, then returns this Point.
+	//throws an IllegalArgumentException if either Point has more tan 2 dimensions
+	public Point cMult(Point o) {
+		if(o.vals.length > 2 || this.vals.length > 2) {
+			throw new IllegalArgumentException();
+		}
+		double newX = X() * o.X() - Y() * o.Y();
+		double newY = X() * o.Y() + Y() * o.X();
+		setX(newX);
+		setY(newY);
+		return this;
+	}
+	
+	//returns a new Point rotated 90 degrees counterclockwise
+	//around the origin from this one, with the same magnitude
+	public Point getPerpendicular() {
+		return new Point(Y(), -X());
+	}
+	
+	//rotates this Point rot degrees around the origin clockwise,
+	//then returns this Point
+	public Point rot(double rot) {
+		double unitX = Math.cos(rot);
+		double unitY = Math.sin(-rot);
+		double oldX = X();
+		double oldY = Y();
+		setX(oldX * unitX + oldY * unitY);
+		setY(oldY * unitX - oldX * unitY);
+		return this;
+	}
+	
+	//transforms this Point into the space of Point space, then returns this Point
+	//this Point is also multiplied by the magnitude of space in the process, 
+	//so if you want to avoid this, normalize space first
+	public Point toSpace(Point space) {
+		double oldX = X();
+		double oldY = Y();
+		setX(oldX * space.X() + oldY * space.Y());
+		setY(oldY * space.X() - oldX * space.Y());
 		return this;
 	}
 	
