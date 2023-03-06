@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.util.Arrays;
 
 //a class representing a Collidable with polygon collision
 public abstract class PolygonCollider extends Collidable {
@@ -26,6 +27,9 @@ public abstract class PolygonCollider extends Collidable {
 		minBounds = shape[0].copy();
 		for(int i = 0; i < shape.length; i++) {
 			Point cur = shape[i];
+			if(Double.isNaN(cur.X()) || Double.isNaN(cur.Y())) {
+				continue;
+			}
 			if(cur.X() > maxBounds.X()) {
 				maxBounds.setX(cur.X());
 			}
@@ -48,62 +52,46 @@ public abstract class PolygonCollider extends Collidable {
 	}
 	
 	//returns whether the shape of this polygon contains Point p
-	//I actually just copied this from the Polygon.contains() method in awt
-	//because collision logic is hard
 	public boolean shapeContains(Point p) {
-		if(!Linkable.boundsContain(minBounds, maxBounds, p)) return false;
+//		if(!Linkable.boundsContain(minBounds, maxBounds, this, ang, p)) return false;
 		
 		int hits = 0;
 		
-		Point last = shape[shape.length - 1];
+		Point prev = shape[shape.length - 1];
 		Point cur;
 		
-		for (int i = 0; i < shape.length; last = cur, i++) {
-            cur = shape[i];
-
-            if (cur.Y() == last.Y()) {
-                continue;
+		for (int i = 0; i < shape.length; prev = cur, i++) {
+            cur = shape[i].copy();
+            
+            if(p.Y() > Math.max(cur.Y(), prev.Y())) {
+            	continue;
             }
-
-            double leftx;
-            if (cur.X() < last.X()) {
-                if (p.X() >= last.X()) {
-                    continue;
-                }
-                leftx = cur.X();
+            
+            double leftX;
+            double rightX;
+            if(cur.X() < prev.X()) {
+            	leftX = cur.X();
+            	rightX = prev.X();
             } else {
-                if (p.X() >= cur.X()) {
-                    continue;
-                }
-                leftx = last.X();
+            	leftX = prev.X();
+            	rightX = cur.X();
             }
-
-            Point test;
-            if (cur.Y() < last.Y()) {
-                if (p.Y() < cur.Y() || Y() >= last.Y()) {
-                    continue;
-                }
-                if (p.X() < leftx) {
-                    hits++;
-                    continue;
-                }
-                test = p.copy().sub(cur);
-            } else {
-                if (p.Y() < last.Y() || p.Y() >= cur.Y()) {
-                    continue;
-                }
-                if (X() < leftx) {
-                    hits++;
-                    continue;
-                }
-                test = p.copy().sub(last);
+            
+            if(leftX == rightX) {
+            	continue;
             }
-
-            if (test.X() < (test.Y() / (last.Y() - cur.Y()) * (last.X() - cur.X()))) {
-                hits++;
+            
+            if(p.X() > rightX || p.X() < leftX) {
+            	continue;
             }
-        }
-
+            
+            double yVal = (p.X() - cur.X()) * ((cur.Y() - prev.Y()) / (cur.X() - prev.X())) + cur.Y();
+            
+            if(p.Y() < yVal) {
+            	hits++;
+            }
+        } 
+		
         return ((hits & 1) != 0);
 	}
 	
@@ -114,10 +102,9 @@ public abstract class PolygonCollider extends Collidable {
 		return 5;
 	}
 	
-	//returns whether this Collidabe is colliding with Collidable other
+	//returns whether this Collidable is colliding with Collidable other
 	@Override
 	public boolean check(Collidable other) {
-		
 		switch(other.getCollisionType()) {
 			case Collidable.TYPE_POINT:
 				return shapeContains(other.copy().sub(this));
@@ -129,6 +116,8 @@ public abstract class PolygonCollider extends Collidable {
 					if(((PolygonCollider)other).shapeContains(p.copy().sub(other))) return true;
 				}
 				return false;
+			case Collidable.TYPE_OVAL:
+				
 			default:
 				return false;
 		}
@@ -138,8 +127,7 @@ public abstract class PolygonCollider extends Collidable {
 	public Point[] absPoints() {
 		Point[] absPoints = new Point[shape.length];
 		for(int i = 0; i < shape.length; i++) {
-			absPoints[i] = new Point(((Math.cos(-ang) * shape[i].X() + Math.sin(-ang)*shape[i].Y()) + X())
-			,((Math.sin(ang) * shape[i].X() + Math.cos(ang)*shape[i].Y()) + Y()));
+			absPoints[i] = shape[i].copy().rot(ang).add(this);
 		}
 		return absPoints;
 	}

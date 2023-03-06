@@ -194,7 +194,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//returns whether Point test is within the bounds given by minBounds and maxBounds
 	//maybe I should move this to Point
-	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
+	
+	//TODO: fix this
+	public static boolean boundsContain(Point minBounds, Point maxBounds, Point origin, double ang,  Point test) {
+		test = test.copy().sub(origin).rot(-ang);
 		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
 				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}
@@ -217,12 +220,18 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
+		Point[] newPoints = new Point[points.length];
+		for(int i = 0; i < points.length; i++) {
+			newPoints[i] = points[i].copy().rot(totalAng).add(totalX, totalY);
+		}
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];
 		
 		for(int i = 0; i < points.length; i++) {
-			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
-			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
+//			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
+//			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
+			xLocs[i] = (int)newPoints[i].X();
+			yLocs[i] = (int)newPoints[i].Y();
 		}
 		
 		if(closed) {
@@ -235,17 +244,30 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//closed determines whether the the first and last Points should be connected
-		protected static void fillPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points) {
-			int[] xLocs = new int[points.length];
-			int[] yLocs = new int[points.length];
-			
-			for(int i = 0; i < points.length; i++) {
-				xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
-				yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
-			}
-			
-			g.fillPolygon(xLocs, yLocs, xLocs.length);
+	protected static void fillPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points) {
+		int[] xLocs = new int[points.length];
+		int[] yLocs = new int[points.length];
+		
+		for(int i = 0; i < points.length; i++) {
+			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
+			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
 		}
+		
+		g.fillPolygon(xLocs, yLocs, xLocs.length);
+	}
+	
+	//closed determines whether the the first and last Points should be connected
+	protected static void fillPoints(Graphics g, double totalX, double totalY, double totalAng, double size, double[] xVals, double[] yVals) {
+		int[] xLocs = new int[xVals.length];
+		int[] yLocs = new int[yVals.length];
+		
+		for(int i = 0; i < xVals.length; i++) {
+			xLocs[i] = (int)((Math.cos(-totalAng) * xVals[i] + Math.sin(-totalAng) * yVals[i]) * size + totalX);
+			yLocs[i] = (int)((Math.sin(totalAng) * xVals[i] + Math.cos(totalAng) * yVals[i]) * size + totalY);
+		}
+		
+		g.fillPolygon(xLocs, yLocs, xLocs.length);
+	}
 	
 	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g

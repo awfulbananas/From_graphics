@@ -41,8 +41,12 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//links a Linkable to this one, so that it follows it
 	public void linkE(E child) {
 		if(child != null) {
-			child.parent = this;
-			linked.add(child);
+			if(updating) {
+				linkQueue.add(child);
+			} else {
+				child.parent = this;
+				linked.add(child);
+			}
 		}
 	}
 	
