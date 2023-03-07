@@ -101,17 +101,12 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//throws an IllegalStateException if the frame buffer is empty
 	@Override
 	public void paint(Graphics g) {
+		
 		game.drawAll(getNewFrame());
 		if(contentBuffer.isEmpty()) {
 			game.drawAll(getNewFrame());
 		}
 		g.drawImage(contentBuffer.remove(), 0, 0, this);
-	}
-	
-	//adds the given Buffered image to the frame buffer
-	private void addFrame(BufferedImage img) {
-		contentBuffer.add(img);
-		
 	}
 	
 	//adds a new frame to the frame buffer, and returns a Graphics object for drawing on that frame

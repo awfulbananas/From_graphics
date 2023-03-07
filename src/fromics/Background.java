@@ -1,7 +1,6 @@
 package fromics;
 
 import java.awt.Graphics;
-import java.util.Iterator;
 
 //represents the background of something, if you want to have multiple different screens,
 //a good way to do it is to have each screen be a class extending Background

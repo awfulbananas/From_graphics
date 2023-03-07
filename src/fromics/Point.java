@@ -214,13 +214,25 @@ public class Point {
 	
 	//multiplies this Point by Point o as if they are complex numbers in the
 	//format x + yi, then returns this Point.
-	//throws an IllegalArgumentException if either Point has more tan 2 dimensions
+	//throws an IllegalArgumentException if either Point has more than 2 dimensions
 	public Point cMult(Point o) {
 		if(o.vals.length > 2 || this.vals.length > 2) {
 			throw new IllegalArgumentException();
 		}
 		double newX = X() * o.X() - Y() * o.Y();
 		double newY = X() * o.Y() + Y() * o.X();
+		setX(newX);
+		setY(newY);
+		return this;
+	}
+	
+	//divides this Point by Point o as if they are complex numbers in the
+	//format x + yi, then returns this Point.
+	//throws an IllegalArgumentException if either Point has more than 2 dimensions
+	public Point cDiv(Point o) {
+		double oSqrd = o.X() * o.X() + o.Y() * o.Y();
+		double newX = (X() * o.X() + Y() * o.Y()) / oSqrd;
+		double newY = (Y() * o.X() - X() * o.Y()) / oSqrd;
 		setX(newX);
 		setY(newY);
 		return this;

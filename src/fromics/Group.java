@@ -52,6 +52,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	
 	//links Linkbale l to this Linkable, probably only works right if it's of type E
 	//but the error correction might work
+	@SuppressWarnings("unchecked")
 	@Override
 	public void link(Linkable l) {
 		try {
@@ -71,6 +72,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	}
 	
 	//unlinks Linkable l from this Group, probably only works if it's of type E
+	@SuppressWarnings("unchecked")
 	@Override
 	public void unlink(Linkable l) {
 		try {

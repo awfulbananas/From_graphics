@@ -1,7 +1,6 @@
 package fromics;
 
 import java.awt.Graphics;
-import java.util.Arrays;
 
 //a class representing a Collidable with polygon collision
 public abstract class PolygonCollider extends Collidable {
@@ -55,7 +54,7 @@ public abstract class PolygonCollider extends Collidable {
 	public boolean shapeContains(Point p) {
 //		if(!Linkable.boundsContain(minBounds, maxBounds, this, ang, p)) return false;
 		
-		int hits = 0;
+		int intersections = 0;
 		
 		Point prev = shape[shape.length - 1];
 		Point cur;
@@ -77,22 +76,21 @@ public abstract class PolygonCollider extends Collidable {
             	rightX = cur.X();
             }
             
-            if(leftX == rightX) {
+            if(p.X() > rightX || p.X() < leftX || leftX == rightX) {
             	continue;
             }
             
-            if(p.X() > rightX || p.X() < leftX) {
-            	continue;
-            }
-            
+            //the y value of the Point on the line between Points cur and prev with the same x-value
+            //as the Point being checked
             double yVal = (p.X() - cur.X()) * ((cur.Y() - prev.Y()) / (cur.X() - prev.X())) + cur.Y();
             
+            //if the Point being checked is under it's intersection with the line
             if(p.Y() < yVal) {
-            	hits++;
+            	intersections++;
             }
         } 
 		
-        return ((hits & 1) != 0);
+        return (intersections & 1) != 0;
 	}
 	
 	//returns the collision type of this Collidable

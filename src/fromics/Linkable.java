@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 //a class representing an object with a location and angle in space, usually relative to a parent Linkable, with the ability to be drawn on screen
 //with the exception of Background objects, Linkable objects should always be passed as the argument of .link() or .linkE() to another Linkable before use
@@ -24,6 +25,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	protected boolean updating;
 	//only used if a child tries to Link a new Linkable while this one is updating
 	protected Queue<Linkable> linkQueue;
+	//a Set containing all of the keyboard key currently pressed
+	private Set<Integer> keysPressed;
 	
 	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
@@ -112,6 +115,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
+	protected void setKeysSet(Set<Integer> keysPressed) {
+		this.keysPressed = keysPressed;
+	}
+	
 	//links a Linkable to this one, so that it follows it,
 	//every Linkable except a Background should be linked to another
 	public void link(Linkable child) {
@@ -119,6 +126,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			linkQueue.add(child);
 		} else {
 			child.parent = this;
+			child.keysPressed = keysPressed;
 			linked.add(child);
 		}
 	}
@@ -145,6 +153,11 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 				return 1;
 		}
 		
+	}
+	
+	//returs whether the given key is presses
+	protected boolean getKey(int key) {
+		return keysPressed.contains(key);
 	}
 	
 	//returns the number of children of this Linkable
@@ -197,7 +210,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//TODO: fix this
 	public static boolean boundsContain(Point minBounds, Point maxBounds, Point origin, double ang,  Point test) {
-		test = test.copy().sub(origin).rot(-ang);
+		test = test.copy().sub(origin).rot(ang);
 		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
 				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}

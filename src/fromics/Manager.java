@@ -1,6 +1,5 @@
 package fromics;
 
-import java.awt.Component;
 import java.awt.Graphics;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -16,9 +15,10 @@ public abstract class Manager extends Background {
 	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
-	//so nesting them won't create a wierd offset
+	//so nesting them won't create a weird offset
 	public Manager(Frindow observer) {
 		super(observer);
+		setKeysSet(observer.getKeys().codes);
 		setX(0);
 		setY(0);
 	}
