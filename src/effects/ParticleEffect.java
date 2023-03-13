@@ -1,7 +1,6 @@
 package effects;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
