@@ -118,6 +118,9 @@ public class Point {
 	
 	//gets the value of dimension dim of this Point, where dimension 0 is x, dimension 1 is y, etc.
 	public double get(int dim) {
+		if(vals.length <= dim) {
+			return 0;
+		}
 		return vals[dim];
 	}
 	
@@ -165,6 +168,13 @@ public class Point {
 		for(int i = 0; i < Math.min(vals.length, p.vals.length); i++) {
 			this.vals[i] -= p.vals[i];
 		}
+		return this;
+	}
+	
+	//subtracts x from the x-value of this Point, and y from the y-value of this Point
+	public Point sub(double x, double y) {
+		vals[0] -= x;
+		vals[1] -= y;
 		return this;
 	}
 	

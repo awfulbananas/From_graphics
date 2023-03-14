@@ -140,13 +140,21 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//compares the z values of two Linkables, altering them to resolve any conflicts,
 	//so that sorting a list will order then based on drawing order
 	public int compareTo(Linkable o) {
-		switch((int)Math.copySign(1, Double.compare(get(2), o.get(2)))) {
+		switch((int)Math.copySign(1, Double.compare(getZ(), o.getZ()))) {
 			case -1:
 				return -1;
 			case 1:
 				return 1;
 			case 0:
-				add(new Point(0, 0, 0.001));
+				if(vals.length > 2) {
+					add(new Point(0, 0, 0.001));
+				} else {
+					double[] oldVals = vals;
+					vals = new double[3];
+					vals[0] = oldVals[0];
+					vals[1] = oldVals[1];
+					vals[2] = 0.001;
+				}
 				return 1;
 			default:
 				System.out.println("problem");
