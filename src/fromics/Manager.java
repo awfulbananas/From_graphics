@@ -18,7 +18,6 @@ public abstract class Manager extends Background {
 	//so nesting them won't create a weird offset
 	public Manager(Frindow observer) {
 		super(observer);
-		setKeysSet(observer.getKeys().codes);
 		setX(0);
 		setY(0);
 	}

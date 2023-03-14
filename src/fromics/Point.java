@@ -212,6 +212,18 @@ public class Point {
 		return this;
 	}
 	
+	//applies a 2d linear transformation to this Point, where the transformed location of (1, 0)
+	//is iHatLoc, and the transformed location of (0, 1) is jHatLoc, and is also equivalent to
+	//multiplying the matrix with iHatLoc and jHatLoc as it's columns by this Vector
+	//returns this Point
+	public Point matrixTransform(Point iHatLoc, Point jHatLoc) {
+		double newX = Y() * jHatLoc.X() + X() * iHatLoc.X();
+		double newY = Y() * jHatLoc.Y() + X() * iHatLoc.Y();
+		setX(newX);
+		setY(newY);
+		return this;
+	}
+	
 	//multiplies this Point by Point o as if they are complex numbers in the
 	//format x + yi, then returns this Point.
 	//throws an IllegalArgumentException if either Point has more than 2 dimensions

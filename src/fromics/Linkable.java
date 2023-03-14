@@ -122,11 +122,11 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//links a Linkable to this one, so that it follows it,
 	//every Linkable except a Background should be linked to another
 	public void link(Linkable child) {
+		child.keysPressed = this.keysPressed;
 		if(updating) {
 			linkQueue.add(child);
 		} else {
 			child.parent = this;
-			child.keysPressed = keysPressed;
 			linked.add(child);
 		}
 	}
@@ -155,7 +155,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		
 	}
 	
-	//returs whether the given key is presses
+	//returns whether the given key is presses
 	protected boolean getKey(int key) {
 		return keysPressed.contains(key);
 	}
@@ -211,6 +211,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//TODO: fix this
 	public static boolean boundsContain(Point minBounds, Point maxBounds, Point origin, double ang,  Point test) {
 		test = test.copy().sub(origin).rot(ang);
+		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
+				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
+	}
+	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
 		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
 				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}

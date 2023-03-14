@@ -13,6 +13,7 @@ public class Background extends Linkable {
 	public Background(Frindow observer) {
 		super(observer.getWidth() / 2, observer.getHeight() / 2);
 		this.observer = observer;
+		setKeysSet(observer.getKeys().codes);
 	}
 	
 	//draws this Backgound and all of it's children
@@ -35,13 +36,13 @@ public class Background extends Linkable {
 	//returns a Point representing the lower-right corner of the bounds of the screen
 	@Override
 	public Point getMaxBounds() {
-		return new Point(observer.getWidth(), observer.getHeight());
+		return new Point(observer.getWidth() / 2, observer.getHeight() / 2);
 	}
 	
 	//returns a Point representing the upper-left corner of the screen
 	@Override
 	public Point getMinBounds() {
-		return new Point(observer.getWidth() * -1, observer.getHeight() * -1);
+		return new Point(observer.getWidth() / -2, observer.getHeight() / -2);
 	}
 
 	//override this if you want the background to draw something
