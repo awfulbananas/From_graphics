@@ -45,7 +45,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		updating = false;
 		parent = null;
 		linkQueue = new LinkedList<>();
-		linked = new ArrayList<>();
+		linked = new LinkedList<>();
 		ang = 0;
 	}
 	
@@ -128,6 +128,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		} else {
 			child.parent = this;
 			linked.add(child);
+			linked.sort(null);
 		}
 	}
 	
