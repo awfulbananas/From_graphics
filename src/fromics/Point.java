@@ -55,6 +55,17 @@ public class Point {
 		return new Point(vals.clone());
 	}
 	
+	//adds another dimension to this Point, initializing the value of that dimension to 0
+	public Point addDim() {
+		double[] oldVals = vals;
+		vals = new double[vals.length + 1];
+		for(int i = 0; i < oldVals.length; i++) {
+			vals[i] = oldVals[i];
+		}
+		vals[oldVals.length] = 0;
+		return this;
+	}
+	
 	//returns a String representation of this Point
 	//in the format (x, y) for 2 dimensions, (x, y, z) for 3 dimensions, etc.
 	@Override
