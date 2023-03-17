@@ -37,16 +37,19 @@ public class Texture extends Linkable{
 	@Override
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
 		double totAng = angOff + ang;
-		
 		//if there's no rotation, don't do the rotation algorithm
 		if(totAng == 0) {
 			drawImg(g, img, xOff, yOff);
-			return;
 		}
-		
+		BufferedImage rotated = getRotatedImage(img, totAng);
+		//draw the rotated image
+		drawImg(g, rotated, xOff, yOff);
+	}
+	
+	public static BufferedImage getRotatedImage(BufferedImage img, double ang) {
 		//calculate the unit vectors for the rotation
-		Point tX = (new Point(1, 0)).rot(totAng);
-		Point tY = (new Point(tX.Y(), -tX.X()));
+		Point tX = (new Point(1, 0)).rot(ang);
+		Point tY = tX.getPerpendicular();
 		//gets the width and height of the un-rotated image
 		double oldWidth = img.getWidth();
 		double oldHeight = img.getHeight();
@@ -56,14 +59,11 @@ public class Texture extends Linkable{
 		
 		//creates a new image with the right size in INT_ARGB color space
 		BufferedImage rotated = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
-		
-		System.out.println(newWidth);
-		
 		//loop through every pixel of the new image
 		for(int i = 0; i < newWidth; i++) {
 			for(int j = 0; j < newHeight; j++) {
 				//calculates the location this pixel would be if rotated back to the original
-				Point referenceLoc = (new Point(i - newWidth / 2, j - newHeight / 2)).matrixTransform(tX, tY.copy().mult(-1)).add(oldWidth / 2, oldHeight / 2);
+				Point referenceLoc = (new Point(i - newWidth / 2, j - newHeight / 2)).matrixTransform(tX, tY.copy()).add(oldWidth / 2, oldHeight / 2);
 				
 				//continues if this pixel would be outside of the old image
 				if(referenceLoc.X() < 0 || referenceLoc.X() >= oldWidth || referenceLoc.Y() < 0 || referenceLoc.Y() >= oldHeight) {
@@ -105,14 +105,10 @@ public class Texture extends Linkable{
 				}
 				
 				Color finalColor = new Color((int)(redSum / weightSum), (int)(greenSum / weightSum), (int)(blueSum / weightSum), (int)(alphaSum / weightSum));
-//				System.out.println(referenceLoc + "" + finalColor);
 				rotated.setRGB(i, j, finalColor.getRGB());
 			}
 		}
-//		rotated = img;
-		
-		//draw the rotated image
-		drawImg(g, rotated, xOff, yOff);
+		return rotated;
 	}
 	
 	private void drawImg(Graphics g, BufferedImage img, double xOff, double yOff) {

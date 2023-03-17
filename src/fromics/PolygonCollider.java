@@ -45,7 +45,7 @@ public abstract class PolygonCollider extends Collidable {
 	}
 	
 	//constructs a new PolygonCollider at (x, y) with points (xVals, yVals) scaled by size
-	public PolygonCollider(int x, int y, double[] xVals, double[] yVals, double size) {
+	public PolygonCollider(double x, double y, double[] xVals, double[] yVals, double size) {
 		super(x, y);
 		init(xVals, yVals, size);
 	}
@@ -53,6 +53,10 @@ public abstract class PolygonCollider extends Collidable {
 	//returns whether the shape of this polygon contains Point p
 	public boolean shapeContains(Point p) {
 //		if(!Linkable.boundsContain(minBounds, maxBounds, this, ang, p)) return false;
+		Point[] shape = this.shape;
+		for(int i = 0; i < shape.length; i++) {
+			
+		}
 		
 		int intersections = 0;
 		

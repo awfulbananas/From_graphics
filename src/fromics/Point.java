@@ -192,6 +192,7 @@ public class Point {
 	//returns the dot product between this Point and Point p
 	//if one of the Points is normalized, this can be thought of as getting
 	//the other Point's distance along the axis along that Point
+	//throws an IllegalArgumentException if the Points have different numbers of dimensions
 	//if both Points are normalized, this can be used to get the cosine of the angle between them
 	public double dot(Point p) {
 		if(p.vals.length != this.vals.length) {
@@ -199,6 +200,18 @@ public class Point {
 		}
 		int sum = 0;
 		for(int i = 0; i < vals.length; i++) {
+			sum += this.vals[i] * p.vals[i];
+		}
+		return sum;
+	}
+	
+	//returns the dot product between this Point and Point p using only the x and y dimensions
+	//if one of the Points is normalized, this can be thought of as getting
+	//the other Point's distance along the axis along that Point
+	//if both Points are normalized, this can be used to get the cosine of the angle between them
+	public double dot2d(Point p) {
+		int sum = 0;
+		for(int i = 0; i < 2; i++) {
 			sum += this.vals[i] * p.vals[i];
 		}
 		return sum;
@@ -280,12 +293,12 @@ public class Point {
 	//rotates this Point rot degrees around the origin clockwise,
 	//then returns this Point
 	public Point rot(double rot) {
-		double unitX = Math.cos(rot);
-		double unitY = Math.sin(-rot);
+		Point newXLoc = new Point(Math.cos(rot), -Math.sin(rot));
+		Point newYLoc = newXLoc.getPerpendicular();
 		double oldX = X();
 		double oldY = Y();
-		setX(oldX * unitX + oldY * unitY);
-		setY(oldY * unitX - oldX * unitY);
+		setX(oldX * newXLoc.X() + oldY * newYLoc.Y());
+		setY(oldX * newXLoc.Y() + oldY * newYLoc.Y());
 		return this;
 	}
 	

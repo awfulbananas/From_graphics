@@ -2,7 +2,6 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -206,9 +205,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
+		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newYLoc = newXLoc.getPerpendicular();
+		
 		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((Math.cos(totalAng)*relativeX[i] + Math.sin(totalAng)*relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((Math.sin(totalAng)*relativeX[i] + Math.cos(totalAng)*relativeY[i]) * size + totalY);
+			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
+			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalX);
 		}
 		
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
@@ -234,9 +236,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
+		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newYLoc = newXLoc.getPerpendicular();
+		
 		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((Math.cos(-totalAng)*relativeX[i] + Math.sin(-totalAng)*relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((Math.sin(totalAng)*relativeX[i] + Math.cos(totalAng)*relativeY[i]) * size + totalY);
+			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
+			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalX);
 		}
 		
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
@@ -247,15 +252,16 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		Point[] newPoints = new Point[points.length];
+		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
-			newPoints[i] = points[i].copy().rot(totalAng).add(totalX, totalY);
+			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
+//			System.out.println(newPoints[i]);
 		}
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];
 		
 		for(int i = 0; i < points.length; i++) {
-//			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
-//			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
 			xLocs[i] = (int)newPoints[i].X();
 			yLocs[i] = (int)newPoints[i].Y();
 		}
