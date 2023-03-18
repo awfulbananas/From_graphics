@@ -7,7 +7,7 @@ import java.awt.Graphics;
 public class Background extends Linkable {
 	
 	//the Frindow which this background is displayed on
-	protected Frindow observer;
+	protected Frindow observer;  
 	
 	//constructs a new Background with the given observer
 	public Background(Frindow observer) {
