@@ -49,7 +49,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//updates this Linkable and all of it's children
-	public void updateAll() {
+	public boolean updateAll() {
 		updating = true;
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
@@ -57,11 +57,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			if(next.update()) lItr.remove();
 			next.updateAll();
 		}
-		update();
+		boolean updateVal = update();
 		updating = false;
 		while(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
+		return updateVal;
 	}
 	
 	//optional method, if implemented, should run any update functionality, 
@@ -200,19 +201,21 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
+	//doesn't work right now
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, double[] relativeX, double[] relativeY) {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
-		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newXLoc = (new Point(Math.cos(totalAng), Math.sin(totalAng)));
 		Point newYLoc = newXLoc.getPerpendicular();
 		
 		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalX);
+			xLocs[i] = (int)((relativeX[i] * size) + totalX);
+			yLocs[i] = (int)((relativeY[i] * size) + totalX);
 		}
 		
+//		g.drawOval((int)totalX - 5, (int)totalY - 5, 10, 10);
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
 	}
 	
@@ -252,7 +255,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		Point[] newPoints = new Point[points.length];
-		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newXLoc = (new Point(-1, 0)).rot(totalAng);
 		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
 			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);

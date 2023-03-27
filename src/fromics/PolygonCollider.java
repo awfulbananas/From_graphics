@@ -52,12 +52,7 @@ public abstract class PolygonCollider extends Collidable {
 	
 	//returns whether the shape of this polygon contains Point p
 	public boolean shapeContains(Point p) {
-//		if(!Linkable.boundsContain(minBounds, maxBounds, this, ang, p)) return false;
-		Point[] shape = this.shape;
-		for(int i = 0; i < shape.length; i++) {
-			
-		}
-		
+		p = p.copy().rot(-ang);
 		int intersections = 0;
 		
 		Point prev = shape[shape.length - 1];
@@ -127,7 +122,7 @@ public abstract class PolygonCollider extends Collidable {
 	public Point[] absPoints() {
 		Point[] absPoints = new Point[shape.length];
 		for(int i = 0; i < shape.length; i++) {
-			absPoints[i] = shape[i].copy().rot(ang).add(this);
+			absPoints[i] = shape[i].copy().rot(ang).add(X(), Y());
 		}
 		return absPoints;
 	}
@@ -140,7 +135,7 @@ public abstract class PolygonCollider extends Collidable {
 	
 	//draws the Collider of this PolygonCollider using Graphics g
 	protected void drawCollider(Graphics g, double xOff, double yOff, double angOff) {
-		drawPoints(g, xOff, yOff, angOff, 1, shape);
+		drawPoints(g, xOff + X(), yOff + Y(), angOff, 1, shape);
 	}
 
 }

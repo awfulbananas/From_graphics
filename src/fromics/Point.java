@@ -295,11 +295,7 @@ public class Point {
 	public Point rot(double rot) {
 		Point newXLoc = new Point(Math.cos(rot), -Math.sin(rot));
 		Point newYLoc = newXLoc.getPerpendicular();
-		double oldX = X();
-		double oldY = Y();
-		setX(oldX * newXLoc.X() + oldY * newYLoc.Y());
-		setY(oldX * newXLoc.Y() + oldY * newYLoc.Y());
-		return this;
+		return matrixTransform(newXLoc, newYLoc);
 	}
 	
 	//transforms this Point into the space of Point space, then returns this Point

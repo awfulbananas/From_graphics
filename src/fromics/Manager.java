@@ -27,14 +27,15 @@ public abstract class Manager extends Background {
 	//feel free to override this if you want to change
 	//how screens are swapped between
 	@Override
-	public void updateAll() {
-		update();
+	public boolean updateAll() {
+		boolean updateVal = update();
 		if(screens[screen].nextScreen()) {
 			screens[screen].close();
 			initScreen((screen + 1) % screens.length);
 			screen = (screen + 1) % screens.length;
 		}
 		screens[screen].updateAll();
+		return updateVal;
 	}
 	
 	//draws the current Screen of this Manager and all of it's children
