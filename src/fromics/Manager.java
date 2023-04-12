@@ -12,12 +12,14 @@ public abstract class Manager extends Background {
 	public static final int START_DELAY = 15;
 	protected Background[] screens;
 	private int screen;
+	private boolean updated;
 	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
 	//so nesting them won't create a weird offset
 	public Manager(Frindow observer) {
 		super(observer);
+		updated = true;
 		setX(0);
 		setY(0);
 	}
@@ -35,6 +37,7 @@ public abstract class Manager extends Background {
 			screen = (screen + 1) % screens.length;
 		}
 		screens[screen].updateAll();
+		updated = true;
 		return updateVal;
 	}
 	
@@ -58,11 +61,10 @@ public abstract class Manager extends Background {
 
 	private class Run extends TimerTask {
 		public void run() {
-			updateAll();
-//			Thread drawer = new Thread(() -> {
-//				observer.defPaint();
-//			});
-//			drawer.start();
+			if(updated) {
+				updated = false;
+				updateAll();
+			}
 			observer.defPaint();
 		}
 	}

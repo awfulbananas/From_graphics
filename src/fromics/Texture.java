@@ -3,6 +3,7 @@ package fromics;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.util.function.Function;
 
 //a class representing a texture using a raster image
 //the intention is to link this to the Linkable which this is the texture for,
@@ -47,6 +48,53 @@ public class Texture extends Linkable{
 	}
 	
 	public static BufferedImage getRotatedImage(BufferedImage img, double ang) {
+		
+		if(ang % (Math.PI * 2) == 0) {
+			return img;
+		} else if(ang % (Math.PI / 2) == 0){
+			return perpendicularRotation(img, (int)(ang / (Math.PI / 2)));
+		} else {
+			return generalRotation(img, ang);
+		}
+	}
+	
+	private static BufferedImage perpendicularRotation(BufferedImage img, int ang) {
+		int width = img.getWidth();
+		int height = img.getHeight();
+		
+		Function<Point, Point> newLocFunc;
+		
+		ang = ang % 4;
+		
+		BufferedImage newImg;
+		if(ang == 1) {
+			newImg = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
+			newLocFunc = (Point p) -> {
+				return new Point(p.Y(), width - p.X() - 1);
+			};
+		} else if(ang == 3) {
+			newImg = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
+			newLocFunc = (Point p) -> {
+				return new Point(height - p.Y() - 1, p.X());
+			};
+		} else {
+			newImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			newLocFunc = (Point p) -> {
+				return new Point(width - p.X() - 1, height - p.Y() - 1);
+			};
+		}
+		
+		for(int i = 0; i < width; i++) {
+			for(int j = 0; j < height; j++) {
+				Point newLoc = newLocFunc.apply(new Point(i, j));
+				newImg.setRGB((int)newLoc.X(), (int)newLoc.Y(), img.getRGB(i, j));
+			}
+		}
+		
+		return newImg;
+	}
+	
+	private static BufferedImage generalRotation(BufferedImage img, double ang) {
 		//calculate the unit vectors for the rotation
 		Point tX = (new Point(1, 0)).rot(ang);
 		Point tY = tX.getPerpendicular();

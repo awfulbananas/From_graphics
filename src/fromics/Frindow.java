@@ -88,7 +88,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	//paints the Frindow with the default Graphics
 	public void defPaint() {
-		paint(initG);
+		(new Thread(() -> paint(initG))).start();
 	}
 	
 	//draws the next frame to the screen,
@@ -101,7 +101,6 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//throws an IllegalStateException if the frame buffer is empty
 	@Override
 	public void paint(Graphics g) {
-		
 		game.drawAll(getNewFrame());
 		if(contentBuffer.isEmpty()) {
 			game.drawAll(getNewFrame());
