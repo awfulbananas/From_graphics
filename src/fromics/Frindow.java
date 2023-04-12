@@ -93,12 +93,6 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	//draws the next frame to the screen,
 	//g should be the graphics returned by .init()
-	
-	//.paint() removes the front Frame from the frame buffer,
-	//so you can change it's length by calling this more or less
-	//than you call methods that create frames
-	
-	//throws an IllegalStateException if the frame buffer is empty
 	@Override
 	public void paint(Graphics g) {
 		game.drawAll(getNewFrame());
