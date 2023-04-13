@@ -8,17 +8,23 @@ import java.util.TimerTask;
 //it's linkable so that you could have different managers for sub-menus or something similar
 //I usually put my main method in here
 public abstract class Manager extends Background {
-	public static final int FRAME_DELAY = 15;
-	public static final int START_DELAY = 15;
+	public static final int DEF_FRAME_DELAY = 15;
+	public static final int START_DELAY = 20;
 	protected Background[] screens;
 	private int screen;
+	private final int frameDelay;
 	private boolean updated;
 	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
 	//so nesting them won't create a weird offset
 	public Manager(Frindow observer) {
+		this(observer, DEF_FRAME_DELAY);
+	}
+	
+	public Manager(Frindow observer, int frameDelayMillis) {
 		super(observer);
+		frameDelay = frameDelayMillis;
 		updated = true;
 		setX(0);
 		setY(0);
@@ -56,7 +62,7 @@ public abstract class Manager extends Background {
 	
 	public void startLoop() {
 		Timer runner = new Timer();
-		runner.schedule(this.new Run(), START_DELAY, FRAME_DELAY);
+		runner.schedule(this.new Run(), START_DELAY, frameDelay);
 	}
 
 	private class Run extends TimerTask {

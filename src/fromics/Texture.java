@@ -3,7 +3,11 @@ package fromics;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.function.Function;
+
+import javax.imageio.ImageIO;
 
 //a class representing a texture using a raster image
 //the intention is to link this to the Linkable which this is the texture for,
@@ -165,5 +169,15 @@ public class Texture extends Linkable{
 				(int)(xOff + X() + size * img.getWidth() / 2), 
 				(int)(yOff + Y() + size * img.getHeight() / 2), 
 				0, 0, img.getWidth(), img.getHeight(), null);
+	}
+	
+	public static BufferedImage loadImage(String pathName) {
+		BufferedImage texture = null;
+		try {
+		    texture = ImageIO.read(new File(pathName));
+		} catch (IOException e) {
+			System.out.println("failed to load texture: " + pathName);
+		}
+		return texture;
 	}
 }

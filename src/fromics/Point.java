@@ -287,7 +287,7 @@ public class Point {
 	//returns a new Point rotated 90 degrees counterclockwise
 	//around the origin from this one, with the same magnitude
 	public Point getPerpendicular() {
-		return new Point(Y(), -X());
+		return new Point(-Y(), X());
 	}
 	
 	//rotates this Point rot degrees around the origin clockwise,
