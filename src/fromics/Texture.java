@@ -74,12 +74,12 @@ public class Texture extends Linkable{
 		if(ang == 1) {
 			newImg = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
 			newLocFunc = (Point p) -> {
-				return new Point(p.Y(), width - p.X() - 1);
+				return new Point(height - p.Y() - 1, p.X());
 			};
 		} else if(ang == 3) {
 			newImg = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
 			newLocFunc = (Point p) -> {
-				return new Point(height - p.Y() - 1, p.X());
+				return new Point(p.Y(), width - p.X() - 1);
 			};
 		} else {
 			newImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
