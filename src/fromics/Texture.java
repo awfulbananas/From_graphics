@@ -44,11 +44,11 @@ public class Texture extends Linkable{
 		double totAng = angOff + ang;
 		//if there's no rotation, don't do the rotation algorithm
 		if(totAng == 0) {
-			drawImg(g, img, xOff + X(), yOff + Y());
+			drawImg(g, img, xOff, yOff);
 		}
 		BufferedImage rotated = getRotatedImage(img, totAng);
 		//draw the rotated image
-		drawImg(g, rotated, xOff + X(), yOff + Y());
+		drawImg(g, rotated, xOff, yOff);
 	}
 	
 	public static BufferedImage getRotatedImage(BufferedImage img, double ang) {

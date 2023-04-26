@@ -80,6 +80,14 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		return parent.getMinBounds();
 	}
 	
+	public int getScreenWidth() {
+		return parent.getScreenWidth();
+	}
+	
+	public int getScreenHeight() {
+		return parent.getScreenHeight();
+	}
+	
 	//returns the location of this Linkable in global space
 	public Point gatAbsLoc() {
 		return new Point(getAbsX(), getAbsY());

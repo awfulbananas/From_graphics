@@ -44,6 +44,15 @@ public class Background extends Linkable {
 	public Point getMinBounds() {
 		return new Point(observer.getWidth() / -2, observer.getHeight() / -2);
 	}
+	
+	@Override
+	public int getScreenWidth() {
+		return observer.getWidth();
+	}
+	
+	public int getScreenHeight() {
+		return observer.getHeight();
+	}
 
 	//override this if you want the background to draw something
 	@Override
