@@ -1,8 +1,8 @@
 package fromics;
 
 import java.awt.Graphics;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 //a class representing a group of Linkables of a specific type
@@ -17,7 +17,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//almost always want to save it in a variable
 	public Group(Linkable holder) {
 		super(0,0);
-		linked = new ArrayList<>();
+		linked = new LinkedList<>();
 		holder.link(this);
 	}
 	
@@ -52,6 +52,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	
 	//links Linkbale l to this Linkable, probably only works right if it's of type E
 	//but the error correction might work
+	@SuppressWarnings("unchecked")
 	@Override
 	public void link(Linkable l) {
 		try {
@@ -71,6 +72,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	}
 	
 	//unlinks Linkable l from this Group, probably only works if it's of type E
+	@SuppressWarnings("unchecked")
 	@Override
 	public void unlink(Linkable l) {
 		try {
@@ -82,13 +84,13 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 
 	//updates this Linkable and all of it's children of type E
 	@Override
-	public void updateAll() {
+	public boolean updateAll() {
 		updating = true;
-		update();
+		boolean updateVal = update();
 		Iterator<E> itr = linked.iterator();
 		while(itr.hasNext()) {
 			E next = itr.next();
-			if(next.update()) {
+			if(next.updateAll()) {
 				itr.remove();
 			}
 		}
@@ -96,6 +98,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		while(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
+		return updateVal;
 	}
 	
 	//returns the number of children of type E

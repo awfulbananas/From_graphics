@@ -1,7 +1,6 @@
 package fromics;
 
 import java.awt.Graphics;
-import java.util.Arrays;
 
 //a class representing a Collidable with polygon collision
 public abstract class PolygonCollider extends Collidable {
@@ -46,16 +45,15 @@ public abstract class PolygonCollider extends Collidable {
 	}
 	
 	//constructs a new PolygonCollider at (x, y) with points (xVals, yVals) scaled by size
-	public PolygonCollider(int x, int y, double[] xVals, double[] yVals, double size) {
+	public PolygonCollider(double x, double y, double[] xVals, double[] yVals, double size) {
 		super(x, y);
 		init(xVals, yVals, size);
 	}
 	
 	//returns whether the shape of this polygon contains Point p
 	public boolean shapeContains(Point p) {
-//		if(!Linkable.boundsContain(minBounds, maxBounds, this, ang, p)) return false;
-		
-		int hits = 0;
+		p = p.copy().rot(-ang);
+		int intersections = 0;
 		
 		Point prev = shape[shape.length - 1];
 		Point cur;
@@ -77,22 +75,21 @@ public abstract class PolygonCollider extends Collidable {
             	rightX = cur.X();
             }
             
-            if(leftX == rightX) {
+            if(p.X() > rightX || p.X() < leftX || leftX == rightX) {
             	continue;
             }
             
-            if(p.X() > rightX || p.X() < leftX) {
-            	continue;
-            }
-            
+            //the y value of the Point on the line between Points cur and prev with the same x-value
+            //as the Point being checked
             double yVal = (p.X() - cur.X()) * ((cur.Y() - prev.Y()) / (cur.X() - prev.X())) + cur.Y();
             
+            //if the Point being checked is under it's intersection with the line
             if(p.Y() < yVal) {
-            	hits++;
+            	intersections++;
             }
         } 
 		
-        return ((hits & 1) != 0);
+        return (intersections & 1) != 0;
 	}
 	
 	//returns the collision type of this Collidable
@@ -116,8 +113,6 @@ public abstract class PolygonCollider extends Collidable {
 					if(((PolygonCollider)other).shapeContains(p.copy().sub(other))) return true;
 				}
 				return false;
-			case Collidable.TYPE_OVAL:
-				
 			default:
 				return false;
 		}
@@ -127,7 +122,7 @@ public abstract class PolygonCollider extends Collidable {
 	public Point[] absPoints() {
 		Point[] absPoints = new Point[shape.length];
 		for(int i = 0; i < shape.length; i++) {
-			absPoints[i] = shape[i].copy().rot(ang).add(this);
+			absPoints[i] = shape[i].copy().rot(ang).add(X(), Y());
 		}
 		return absPoints;
 	}
@@ -140,7 +135,7 @@ public abstract class PolygonCollider extends Collidable {
 	
 	//draws the Collider of this PolygonCollider using Graphics g
 	protected void drawCollider(Graphics g, double xOff, double yOff, double angOff) {
-		drawPoints(g, xOff, yOff, angOff, 1, shape);
+		drawPoints(g, xOff + X(), yOff + Y(), angOff, 1, shape);
 	}
 
 }

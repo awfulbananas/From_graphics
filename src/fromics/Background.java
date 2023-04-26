@@ -1,19 +1,19 @@
 package fromics;
 
 import java.awt.Graphics;
-import java.util.Iterator;
 
 //represents the background of something, if you want to have multiple different screens,
 //a good way to do it is to have each screen be a class extending Background
 public class Background extends Linkable {
 	
 	//the Frindow which this background is displayed on
-	protected Frindow observer;
+	protected Frindow observer;  
 	
 	//constructs a new Background with the given observer
 	public Background(Frindow observer) {
 		super(observer.getWidth() / 2, observer.getHeight() / 2);
 		this.observer = observer;
+		setKeysSet(observer.getKeys().codes);
 	}
 	
 	//draws this Backgound and all of it's children
@@ -36,13 +36,22 @@ public class Background extends Linkable {
 	//returns a Point representing the lower-right corner of the bounds of the screen
 	@Override
 	public Point getMaxBounds() {
-		return new Point(observer.getWidth(), observer.getHeight());
+		return new Point(observer.getWidth() / 2, observer.getHeight() / 2);
 	}
 	
 	//returns a Point representing the upper-left corner of the screen
 	@Override
 	public Point getMinBounds() {
-		return new Point(observer.getWidth() * -1, observer.getHeight() * -1);
+		return new Point(observer.getWidth() / -2, observer.getHeight() / -2);
+	}
+	
+	@Override
+	public int getScreenWidth() {
+		return observer.getWidth();
+	}
+	
+	public int getScreenHeight() {
+		return observer.getHeight();
 	}
 
 	//override this if you want the background to draw something

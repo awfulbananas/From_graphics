@@ -43,7 +43,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		}
 		
 		@Override
-		public void windowClosing (WindowEvent e) {    
+		public void windowClosing (WindowEvent e) { 
+			game.close();
             f.dispose();  
             System.exit(0);
         }  
@@ -88,17 +89,11 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	//paints the Frindow with the default Graphics
 	public void defPaint() {
-		paint(initG);
+		(new Thread(() -> paint(initG))).start();
 	}
 	
 	//draws the next frame to the screen,
 	//g should be the graphics returned by .init()
-	
-	//.paint() removes the front Frame from the frame buffer,
-	//so you can change it's length by calling this more or less
-	//than you call methods that create frames
-	
-	//throws an IllegalStateException if the frame buffer is empty
 	@Override
 	public void paint(Graphics g) {
 		game.drawAll(getNewFrame());
@@ -106,12 +101,6 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 			game.drawAll(getNewFrame());
 		}
 		g.drawImage(contentBuffer.remove(), 0, 0, this);
-	}
-	
-	//adds the given Buffered image to the frame buffer
-	private void addFrame(BufferedImage img) {
-		contentBuffer.add(img);
-		
 	}
 	
 	//adds a new frame to the frame buffer, and returns a Graphics object for drawing on that frame

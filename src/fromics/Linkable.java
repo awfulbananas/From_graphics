@@ -2,11 +2,11 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 //a class representing an object with a location and angle in space, usually relative to a parent Linkable, with the ability to be drawn on screen
 //with the exception of Background objects, Linkable objects should always be passed as the argument of .link() or .linkE() to another Linkable before use
@@ -24,6 +24,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	protected boolean updating;
 	//only used if a child tries to Link a new Linkable while this one is updating
 	protected Queue<Linkable> linkQueue;
+	//a Set containing all of the keyboard key currently pressed
+	private Set<Integer> keysPressed;
 	
 	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
@@ -42,12 +44,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		updating = false;
 		parent = null;
 		linkQueue = new LinkedList<>();
-		linked = new ArrayList<>();
+		linked = new LinkedList<>();
 		ang = 0;
 	}
 	
 	//updates this Linkable and all of it's children
-	public void updateAll() {
+	public boolean updateAll() {
 		updating = true;
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
@@ -55,11 +57,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			if(next.update()) lItr.remove();
 			next.updateAll();
 		}
-		update();
+		boolean updateVal = update();
 		updating = false;
 		while(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
+		return updateVal;
 	}
 	
 	//optional method, if implemented, should run any update functionality, 
@@ -75,6 +78,14 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//like getMaxBounds(), but returns the point representing the upper left corner of the bounds of the screen
 	public Point getMinBounds() {
 		return parent.getMinBounds();
+	}
+	
+	public int getScreenWidth() {
+		return parent.getScreenWidth();
+	}
+	
+	public int getScreenHeight() {
+		return parent.getScreenHeight();
 	}
 	
 	//returns the location of this Linkable in global space
@@ -112,14 +123,20 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
+	protected void setKeysSet(Set<Integer> keysPressed) {
+		this.keysPressed = keysPressed;
+	}
+	
 	//links a Linkable to this one, so that it follows it,
 	//every Linkable except a Background should be linked to another
 	public void link(Linkable child) {
+		child.keysPressed = this.keysPressed;
 		if(updating) {
 			linkQueue.add(child);
 		} else {
 			child.parent = this;
 			linked.add(child);
+			linked.sort(null);
 		}
 	}
 	
@@ -132,19 +149,32 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//compares the z values of two Linkables, altering them to resolve any conflicts,
 	//so that sorting a list will order then based on drawing order
 	public int compareTo(Linkable o) {
-		switch((int)Math.copySign(1, Double.compare(get(2), o.get(2)))) {
+		switch((int)Math.copySign(1, Double.compare(getZ(), o.getZ()))) {
 			case -1:
 				return -1;
 			case 1:
 				return 1;
 			case 0:
-				add(new Point(0, 0, 0.001));
+				if(vals.length > 2) {
+					add(new Point(0, 0, 0.001));
+				} else {
+					double[] oldVals = vals;
+					vals = new double[3];
+					vals[0] = oldVals[0];
+					vals[1] = oldVals[1];
+					vals[2] = 0.001;
+				}
 				return 1;
 			default:
 				System.out.println("problem");
 				return 1;
 		}
 		
+	}
+	
+	//returns whether the given key is presses
+	protected boolean getKey(int key) {
+		return keysPressed.contains(key);
 	}
 	
 	//returns the number of children of this Linkable
@@ -179,16 +209,21 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
+	//doesn't work right now
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, double[] relativeX, double[] relativeY) {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
+		Point newXLoc = (new Point(Math.cos(totalAng), Math.sin(totalAng)));
+		Point newYLoc = newXLoc.getPerpendicular();
+		
 		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((Math.cos(totalAng)*relativeX[i] + Math.sin(totalAng)*relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((Math.sin(totalAng)*relativeX[i] + Math.cos(totalAng)*relativeY[i]) * size + totalY);
+			xLocs[i] = (int)((relativeX[i] * size) + totalX);
+			yLocs[i] = (int)((relativeY[i] * size) + totalX);
 		}
 		
+//		g.drawOval((int)totalX - 5, (int)totalY - 5, 10, 10);
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
 	}
 	
@@ -197,7 +232,11 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//TODO: fix this
 	public static boolean boundsContain(Point minBounds, Point maxBounds, Point origin, double ang,  Point test) {
-		test = test.copy().sub(origin).rot(-ang);
+		test = test.copy().sub(origin).rot(ang);
+		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
+				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
+	}
+	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
 		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
 				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}
@@ -208,9 +247,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
+		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newYLoc = newXLoc.getPerpendicular();
+		
 		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((Math.cos(-totalAng)*relativeX[i] + Math.sin(-totalAng)*relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((Math.sin(totalAng)*relativeX[i] + Math.cos(totalAng)*relativeY[i]) * size + totalY);
+			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
+			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalX);
 		}
 		
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
@@ -221,15 +263,16 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		Point[] newPoints = new Point[points.length];
+		Point newXLoc = (new Point(-1, 0)).rot(totalAng);
+		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
-			newPoints[i] = points[i].copy().rot(totalAng).add(totalX, totalY);
+			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
+//			System.out.println(newPoints[i]);
 		}
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];
 		
 		for(int i = 0; i < points.length; i++) {
-//			xLocs[i] = (int)((Math.cos(-totalAng) * points[i].X() + Math.sin(-totalAng) * points[i].Y()) * size + totalX);
-//			yLocs[i] = (int)((Math.sin(totalAng) * points[i].X() + Math.cos(totalAng) * points[i].Y()) * size + totalY);
 			xLocs[i] = (int)newPoints[i].X();
 			yLocs[i] = (int)newPoints[i].Y();
 		}

@@ -55,6 +55,17 @@ public class Point {
 		return new Point(vals.clone());
 	}
 	
+	//adds another dimension to this Point, initializing the value of that dimension to 0
+	public Point addDim() {
+		double[] oldVals = vals;
+		vals = new double[vals.length + 1];
+		for(int i = 0; i < oldVals.length; i++) {
+			vals[i] = oldVals[i];
+		}
+		vals[oldVals.length] = 0;
+		return this;
+	}
+	
 	//returns a String representation of this Point
 	//in the format (x, y) for 2 dimensions, (x, y, z) for 3 dimensions, etc.
 	@Override
@@ -118,6 +129,9 @@ public class Point {
 	
 	//gets the value of dimension dim of this Point, where dimension 0 is x, dimension 1 is y, etc.
 	public double get(int dim) {
+		if(vals.length <= dim) {
+			return 0;
+		}
 		return vals[dim];
 	}
 	
@@ -168,9 +182,17 @@ public class Point {
 		return this;
 	}
 	
+	//subtracts x from the x-value of this Point, and y from the y-value of this Point
+	public Point sub(double x, double y) {
+		vals[0] -= x;
+		vals[1] -= y;
+		return this;
+	}
+	
 	//returns the dot product between this Point and Point p
 	//if one of the Points is normalized, this can be thought of as getting
 	//the other Point's distance along the axis along that Point
+	//throws an IllegalArgumentException if the Points have different numbers of dimensions
 	//if both Points are normalized, this can be used to get the cosine of the angle between them
 	public double dot(Point p) {
 		if(p.vals.length != this.vals.length) {
@@ -178,6 +200,18 @@ public class Point {
 		}
 		int sum = 0;
 		for(int i = 0; i < vals.length; i++) {
+			sum += this.vals[i] * p.vals[i];
+		}
+		return sum;
+	}
+	
+	//returns the dot product between this Point and Point p using only the x and y dimensions
+	//if one of the Points is normalized, this can be thought of as getting
+	//the other Point's distance along the axis along that Point
+	//if both Points are normalized, this can be used to get the cosine of the angle between them
+	public double dot2d(Point p) {
+		int sum = 0;
+		for(int i = 0; i < 2; i++) {
 			sum += this.vals[i] * p.vals[i];
 		}
 		return sum;
@@ -212,9 +246,21 @@ public class Point {
 		return this;
 	}
 	
+	//applies a 2d linear transformation to this Point, where the transformed location of (1, 0)
+	//is iHatLoc, and the transformed location of (0, 1) is jHatLoc, and is also equivalent to
+	//multiplying the matrix with iHatLoc and jHatLoc as it's columns by this Vector
+	//returns this Point
+	public Point matrixTransform(Point iHatLoc, Point jHatLoc) {
+		double newX = Y() * jHatLoc.X() + X() * iHatLoc.X();
+		double newY = Y() * jHatLoc.Y() + X() * iHatLoc.Y();
+		setX(newX);
+		setY(newY);
+		return this;
+	}
+	
 	//multiplies this Point by Point o as if they are complex numbers in the
 	//format x + yi, then returns this Point.
-	//throws an IllegalArgumentException if either Point has more tan 2 dimensions
+	//throws an IllegalArgumentException if either Point has more than 2 dimensions
 	public Point cMult(Point o) {
 		if(o.vals.length > 2 || this.vals.length > 2) {
 			throw new IllegalArgumentException();
@@ -226,22 +272,30 @@ public class Point {
 		return this;
 	}
 	
+	//divides this Point by Point o as if they are complex numbers in the
+	//format x + yi, then returns this Point.
+	//throws an IllegalArgumentException if either Point has more than 2 dimensions
+	public Point cDiv(Point o) {
+		double oSqrd = o.X() * o.X() + o.Y() * o.Y();
+		double newX = (X() * o.X() + Y() * o.Y()) / oSqrd;
+		double newY = (Y() * o.X() - X() * o.Y()) / oSqrd;
+		setX(newX);
+		setY(newY);
+		return this;
+	}
+	
 	//returns a new Point rotated 90 degrees counterclockwise
 	//around the origin from this one, with the same magnitude
 	public Point getPerpendicular() {
-		return new Point(Y(), -X());
+		return new Point(-Y(), X());
 	}
 	
 	//rotates this Point rot degrees around the origin clockwise,
 	//then returns this Point
 	public Point rot(double rot) {
-		double unitX = Math.cos(rot);
-		double unitY = Math.sin(-rot);
-		double oldX = X();
-		double oldY = Y();
-		setX(oldX * unitX + oldY * unitY);
-		setY(oldY * unitX - oldX * unitY);
-		return this;
+		Point newXLoc = new Point(Math.cos(rot), -Math.sin(rot));
+		Point newYLoc = newXLoc.getPerpendicular();
+		return matrixTransform(newXLoc, newYLoc);
 	}
 	
 	//transforms this Point into the space of Point space, then returns this Point
