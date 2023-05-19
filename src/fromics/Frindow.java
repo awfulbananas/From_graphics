@@ -44,8 +44,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		
 		@Override
 		public void windowClosing (WindowEvent e) { 
+			f.dispose();
 			game.close();
-            f.dispose();  
             System.exit(0);
         }  
 	}
