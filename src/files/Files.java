@@ -1,56 +1,21 @@
-package fromics;
+package files;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.Queue;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 
 //a collection of methods and classes for parsing different types of files
 public class Files {
 	
-	//represents one element of an xml document
-	public static class XMLElement {
-		public boolean isTag;
-		public String name;
-		public List<XMLElement> subComponents;
-		public List<String> attributes;
-		public Map<String, String> attributeValues;
-		
-		public String toString() {
-			String s = name;
-			if(isTag) {
-				s += ":";
-				if(attributes != null) {
-					s += "\n	attributes:" ;
-					for(String atb : attributes) {
-						s += "[" + atb + ": " + attributeValues.get(atb) + "] ";
-					}
-				}
-				if(subComponents != null) {
-					s += "\n	elements: [\n";
-					for(XMLElement elm : subComponents) {
-						s += elm + ",\n";
-					}
-					s += "]";
-				}
-			}
-			return s;
-		}
-	}
+	//make the construcotr private so no instances can be made
+	private Files() {}
 	
-	//represents an entire xml document
-	//TODO: add xml version and doctype data
-	public static class XMLDoc {
-		public XMLElement root;
-		
-		public String toString() {
-			return root.toString();
-		}
-	}
 	
 	//parses an xml file conforming to the xml 1.1 standard
 	//which has both xml type and doctype declarations,
@@ -60,9 +25,9 @@ public class Files {
 	//TODO: make it read doctype and xml version info
 	//throws an IllegalArgumentException if the xml file is incorrectly formatted
 	public static XMLDoc parseXMLFile(File xmlFile) throws FileNotFoundException {
-		String fileName = xmlFile.getName();
 		XMLDoc document = new XMLDoc();
 		FileInputStream docReader = new FileInputStream(xmlFile);
+		System.out.println("reading file");
 		try {
 			//read past xml type
 			int bracketNum = 0;
@@ -81,21 +46,7 @@ public class Files {
 				if(next == '>') bracketNum--;
 			}
 			
-			//read past doctype
-			boolean doctypeRead = false;
-			while((!doctypeRead) || bracketNum != 0) {
-				char next = (char)docReader.read();
-				if(next == '<') {
-					bracketNum++;
-					
-					String tagName = readNext(docReader);
-					if(tagName.equals("!DOCTYPE")) {
-						doctypeRead = true;
-					}
-				}
-				
-				if(next == '>') bracketNum--;
-			}
+			System.out.println("read xml type");
 			
 			//read up to the first element
 			while((char)docReader.read() != '<');
@@ -141,6 +92,7 @@ public class Files {
 					//throw an error if the data doesn't immediately follow the attribute name,
 					//or isn't enclosed in quotes
 					char nextChar = (char)xmlIn.read();
+					System.out.println(nextChar);
 					if(nextChar != '"') {
 						throw new IllegalArgumentException();
 					}
@@ -152,16 +104,18 @@ public class Files {
 				//if the tag is closed, stop reading attributes,
 				//and if the element is terminated, return the element
 				char nextChar = (char)xmlIn.read();
+				System.out.println(nextChar);
 				if(nextChar == '>') {
 					readingAttributes = false;
 				} else if(nextChar =='/') {
-					readAllNext(xmlIn, '<');
+					System.out.println(readAllNext(xmlIn, '<'));
 					return element;
+					
 				}
 			}
 			
 			//read element contents
-			element.subComponents = new ArrayList<>();
+			element.subElements = new ArrayList<>();
 			boolean readingContents = true;
 			char firstChar = skipWhitespace(xmlIn);
 			while(readingContents) {
@@ -173,7 +127,7 @@ public class Files {
 						readingContents = false;
 						return element;
 					} else {
-						element.subComponents.add(newElement);
+						element.subElements.add(newElement);
 					}
 				} else {
 					//if the contents aren't a tag, make it a text element
@@ -184,7 +138,7 @@ public class Files {
 					if(newElement.name.equals("")) {
 						throw new IllegalArgumentException();
 					}
-					element.subComponents.add(newElement);
+					element.subElements.add(newElement);
 					firstChar = '<';
 				}
 			}
@@ -222,5 +176,36 @@ public class Files {
 			next = (char)in.read();
 		}
 		return s;
+	}
+	
+	
+	
+	//parses an svg file into an svg object and returns it
+	public static SVGFile parseSVGFile(File svgFile) {
+		SVGFile svg = new SVGFile();
+		XMLDoc doc = null;
+		try {
+			doc = parseXMLFile(svgFile);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.out.println("failed");
+		}
+		XMLElement svgData = doc.root;
+		
+		Queue<XMLElement> pathStrings = new LinkedList<>();
+		for(XMLElement element : svgData.subElements) {
+			if(element.name.equals("path")) pathStrings.add(element);
+		}
+		
+		SplinePath[] paths = new SplinePath[pathStrings.size()];
+		for(int i = 0; i < paths.length; i++) {
+			XMLElement nextPathElement = pathStrings.remove();
+			Color pathColor = Color.decode(nextPathElement.getAttributeValue("stroke"));
+			SplinePath nextPath = new SplinePath(nextPathElement.getAttributeValue("d"), pathColor);
+			paths[i] = nextPath;
+		}
+		svg.paths = paths;
+		
+		return svg;
 	}
 }
