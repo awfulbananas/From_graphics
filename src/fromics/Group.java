@@ -103,8 +103,12 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	
 	//returns the number of children of type E
 	@Override
-	public int size() {
+	public int numLinked() {
 		return linked.size();
+	}
+	
+	public int size() {
+		return numLinked();
 	}
 	
 	//draws all of this Group's children of type E

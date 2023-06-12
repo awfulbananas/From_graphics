@@ -28,7 +28,7 @@ public class Point {
 	//constructs a 3d Point at (x, y, z)
 	public Point(double x, double y, double z) {
 		vals = new double[3];
-		vals[0] = y;
+		vals[0] = x;
 		vals[1] = y;
 		vals[2] = z;
 	}
@@ -52,7 +52,11 @@ public class Point {
 	
 	//returns a copy of this Point
 	public Point copy() {
-		return new Point(vals.clone());
+		Point newP = new Point(vals.length);
+		for(int i = 0; i < vals.length; i++) {
+			newP.set(i, vals[i]);
+		}
+		return newP;
 	}
 	
 	//adds another dimension to this Point, initializing the value of that dimension to 0
@@ -64,6 +68,10 @@ public class Point {
 		}
 		vals[oldVals.length] = 0;
 		return this;
+	}
+	
+	public int dims() {
+		return vals.length;
 	}
 	
 	//returns a String representation of this Point
@@ -198,7 +206,7 @@ public class Point {
 		if(p.vals.length != this.vals.length) {
 			throw new IllegalArgumentException("dot product requires the same number of dimensions between points");
 		}
-		int sum = 0;
+		double sum = 0;
 		for(int i = 0; i < vals.length; i++) {
 			sum += this.vals[i] * p.vals[i];
 		}
@@ -210,7 +218,7 @@ public class Point {
 	//the other Point's distance along the axis along that Point
 	//if both Points are normalized, this can be used to get the cosine of the angle between them
 	public double dot2d(Point p) {
-		int sum = 0;
+		double sum = 0;
 		for(int i = 0; i < 2; i++) {
 			sum += this.vals[i] * p.vals[i];
 		}

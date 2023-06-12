@@ -28,6 +28,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	private Keys keys;
 	//the color space to be used, TYPE_INT_RGP by default
 	private final int colorType;
+	private int targetFrameBufferSize;
 	
 	private Manager game;
 	
@@ -50,10 +51,14 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
         }  
 	}
 	
+	public int getColorType() {
+		return colorType;
+	}
+	
 	//constructs a new Frindow in the given color space of size (width, height)
-	public Frindow(int colorType, int width, int height) {
+	public Frindow(int colorType, int width, int height, String name) {
 		contentBuffer = new LinkedList<>();
-		frame = new Frame("game");
+		frame = new Frame(name);
 		frame.add(this);
 		mouse = new Mouse();
 		keys = new Keys();
@@ -69,6 +74,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		frame.setFocusable(true);
 		setFocusable(true);
 	}
+	//constructs a new Frindow in the given color space of size (width, height)
+	public Frindow(int colorType, int width, int height) {
+		this(colorType, width, height, "game");
+	}
 	
 	//constructs a new Frindow in TYPE_INT_RGB color space, with width and height based on screen size
 	public Frindow() {
@@ -81,6 +90,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	public Graphics init(int bufferCount, Manager game) {
 		this.game = game;
 		for(int i = 0; i < bufferCount; i++) contentBuffer.add(new BufferedImage(getWidth(), getHeight(), colorType));
+		targetFrameBufferSize = bufferCount;
 		setVisible(true);
 		frame.setVisible(true);
 		initG = getGraphics();
@@ -97,7 +107,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	@Override
 	public void paint(Graphics g) {
 		game.drawAll(getNewFrame());
-		if(contentBuffer.isEmpty()) {
+		while(contentBuffer.size() < targetFrameBufferSize) {
 			game.drawAll(getNewFrame());
 		}
 		g.drawImage(contentBuffer.remove(), 0, 0, this);

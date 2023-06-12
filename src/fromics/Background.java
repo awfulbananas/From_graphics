@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 
 //represents the background of something, if you want to have multiple different screens,
 //a good way to do it is to have each screen be a class extending Background
@@ -28,6 +29,11 @@ public class Background extends Linkable {
 	//should return true when the next screen should be shown
 	public boolean nextScreen() {
 		return false;
+	}
+	
+	protected boolean hasAlpha() {
+		int colorType = observer.getColorType();
+		return colorType == BufferedImage.TYPE_INT_ARGB || colorType == BufferedImage.TYPE_4BYTE_ABGR;
 	}
 	
 	//called whenever this screen stops being shown

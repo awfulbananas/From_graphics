@@ -64,8 +64,11 @@ public class Files {
 		XMLElement element = new XMLElement();
 		element.isTag = true;
 		String name = readNext(xmlIn);
+		System.out.println("name: " + name);
+		System.out.println(name.endsWith(">"));
 		//if the tag is closed, don't read attributes
 		if(name.endsWith(">")) {
+			System.out.println("term: " + terminator);
 			if(name.equals(terminator)) return null;
 			element.name = name.substring(0, name.length() - 1);
 		} else {
@@ -77,22 +80,21 @@ public class Files {
 			element.attributes = new ArrayList<>();
 			while(readingAttributes) {
 				
-				System.out.println("reading attributes of " + element.name);
-				
 				char firstAttributeChar = ' ';
 				while(Character.isWhitespace(firstAttributeChar)) firstAttributeChar = (char)xmlIn.read();
 				String nextAtbName = firstAttributeChar + readNext(xmlIn, '=');
+				System.out.println("atb: " + nextAtbName);
 				if(nextAtbName.charAt(0) == '>') {
 					readingAttributes = false;
 				} else if(nextAtbName.charAt(0) == '/') {
 					xmlIn.read();
+					System.out.println("returned");
 					return element;
 				} else {
 					element.attributes.add(nextAtbName);
 					//throw an error if the data doesn't immediately follow the attribute name,
 					//or isn't enclosed in quotes
 					char nextChar = (char)xmlIn.read();
-					System.out.println(nextChar);
 					if(nextChar != '"') {
 						throw new IllegalArgumentException();
 					}
@@ -104,10 +106,10 @@ public class Files {
 				//if the tag is closed, stop reading attributes,
 				//and if the element is terminated, return the element
 				char nextChar = (char)xmlIn.read();
-				System.out.println(nextChar);
 				if(nextChar == '>') {
 					readingAttributes = false;
 				} else if(nextChar =='/') {
+					System.out.println("returned");
 					System.out.println(readAllNext(xmlIn, '<'));
 					return element;
 					
@@ -161,10 +163,12 @@ public class Files {
 	private static String readNext(FileInputStream in, char endChar) throws IOException {
 		String s = "";
 		char next = (char)in.read();
-		while(next != endChar && !Character.isWhitespace(next) && in.available() > 0) {
+		while(next != endChar && (!Character.isWhitespace(next)) && in.available() > 0) {
+			System.out.println("nextchar: " + next);
 			s += next;
 			next = (char)in.read();
 		}
+		if(in.available() == 0 && !Character.isWhitespace(next)) s += next;
 		return s;
 	}
 	
@@ -200,7 +204,10 @@ public class Files {
 		SplinePath[] paths = new SplinePath[pathStrings.size()];
 		for(int i = 0; i < paths.length; i++) {
 			XMLElement nextPathElement = pathStrings.remove();
-			Color pathColor = Color.decode(nextPathElement.getAttributeValue("stroke"));
+			Color pathColor;
+			if(nextPathElement.attributes.contains("stroke")) {
+				pathColor = Color.decode(nextPathElement.getAttributeValue("stroke"));
+			} else pathColor = Color.WHITE;
 			SplinePath nextPath = new SplinePath(nextPathElement.getAttributeValue("d"), pathColor);
 			paths[i] = nextPath;
 		}
