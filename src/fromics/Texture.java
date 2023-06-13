@@ -41,7 +41,7 @@ public class Texture extends Linkable{
 	//draws this texture using Graphics g
 	@Override
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
-		double totAng = angOff + ang;
+		double totAng = (angOff + ang);
 		//if there's no rotation, don't do the rotation algorithm
 		if(totAng == 0) {
 			drawImg(g, img, xOff, yOff);
@@ -71,12 +71,12 @@ public class Texture extends Linkable{
 		ang = ang % 4;
 		
 		BufferedImage newImg;
-		if(ang == 1) {
+		if(ang == 3) {
 			newImg = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
 			newLocFunc = (Point p) -> {
 				return new Point(height - p.Y() - 1, p.X());
 			};
-		} else if(ang == 3) {
+		} else if(ang == 1) {
 			newImg = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
 			newLocFunc = (Point p) -> {
 				return new Point(p.Y(), width - p.X() - 1);

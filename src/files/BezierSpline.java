@@ -13,11 +13,16 @@ public class BezierSpline {
 	private double[] distTPairs;
 	private double totalDist;
 	private boolean distancesCalculated;
+	private int dims;
 	
 	protected boolean isShown;
 	
 	public BezierSpline(Point[] controlPoints) {
 		this.controlPoints = controlPoints;
+		dims = controlPoints[0].dims();
+		for(int i = 1; i < controlPoints.length; i++) {
+			if(controlPoints[i].dims() < dims) dims = controlPoints[i].dims();
+		}
 		coefficients = calculatePointCoefficients(controlPoints.length);
 		isShown = true;
 		distancesCalculated = false;
@@ -28,7 +33,7 @@ public class BezierSpline {
 		for(int i = 0; i < controlPoints.length; i++) {
 			controlPoints[i] = new Point(values[2 * i] + origin.X(), values[2 * i + 1] + origin.Y());
 		}
-		
+		dims = 2;
 		coefficients = calculatePointCoefficients(controlPoints.length);
 		isShown = true;
 		distancesCalculated = false;
@@ -60,7 +65,7 @@ public class BezierSpline {
 		
 		
 		for(int i = 0; i < points; i++) {
-			Point coefficient = new Point(0, 0);
+			Point coefficient = new Point(dims);
 			for(int j = 0; j <= i; j++) {
 				coefficient.add(controlPoints[j].copy().mult(mat[i][j]));
 			}
@@ -75,7 +80,7 @@ public class BezierSpline {
 		} else if(t == 1) {
 			return controlPoints[controlPoints.length - 1].copy();
 		} else {
-			Point loc = new Point(0, 0);
+			Point loc = new Point(dims);
 			for(int i = 0; i < coefficients.length; i++) {
 				Point coefficient = coefficients[i].copy();
 				for(int j = 0; j < i; j++) {

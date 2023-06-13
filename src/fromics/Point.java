@@ -306,6 +306,17 @@ public class Point {
 		return matrixTransform(newXLoc, newYLoc);
 	}
 	
+	public Point clamp(Point min, Point max) {
+		if(min.dims() != max.dims()) {
+			throw new IllegalArgumentException("arguments must have the same number of dimensions");
+		}
+		for(int i = 0; i < dims() && i < min.dims(); i++) {
+			if(vals[i] < min.vals[i]) vals[i] = min.vals[i];
+			if(vals[i] > max.vals[i]) vals[i] = max.vals[i];
+		}
+		return this;
+	}
+	
 	//transforms this Point into the space of Point space, then returns this Point
 	//this Point is also multiplied by the magnitude of space in the process, 
 	//so if you want to avoid this, normalize space first

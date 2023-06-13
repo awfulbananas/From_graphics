@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 
 //a class representing a window for drawing on.
