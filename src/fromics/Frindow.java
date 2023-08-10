@@ -35,6 +35,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	private Graphics initG;
 	
+	private int width;
+	
+	private int height;
+	
 	//a class for managing frame closure, so that the window actually closes when you hit the X button
 	private class WindowOperator extends WindowAdapter {
 		Frame f;
@@ -61,6 +65,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		contentBuffer = new LinkedList<>();
 		frame = new Frame(name);
 		frame.add(this);
+		this.width = width;
+		this.height = height;
 		mouse = new Mouse();
 		keys = new Keys();
 		this.colorType = colorType;

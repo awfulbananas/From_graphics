@@ -20,6 +20,7 @@ public class Background extends Linkable {
 	//draws this Backgound and all of it's children
 	//relative to this background
 	public void drawAll(Graphics g) {
+		setDefColor(g);
 		draw(g, 0, 0, 0);
 		for(int i = 0; i < linked.size(); i++) {
 			linked.get(i).drawAll(g);

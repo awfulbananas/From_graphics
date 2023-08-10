@@ -17,10 +17,10 @@ public class StarEffect extends Linkable {
 	private final int starSize;
 	private final int starFadeTime;
 	
-	private int starTimer;
-	private List<Star> stars;
-	private Point bounds;
-	private Random r;
+	protected int starTimer;
+	protected List<Star> stars;
+	protected Point bounds;
+	protected Random r;
 	
 	public StarEffect(int width, int height, int startStarCount, int starLifetime, int starAddTime, int starSize, int starFadeTime) {
 		super(0, 0);
@@ -37,7 +37,7 @@ public class StarEffect extends Linkable {
 		}
 	}
 	
-	private class Star extends Point {
+	protected class Star extends Point {
 		public int timer;
 
 		public Star(int x, int y, int lifetime) {
@@ -49,7 +49,6 @@ public class StarEffect extends Linkable {
 			timer--;
 			return timer < 0;
 		}
-		
 	}
 	
 	@Override

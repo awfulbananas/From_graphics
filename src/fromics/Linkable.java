@@ -72,6 +72,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		color = Color.WHITE;
 	}
 	
+	public void setAng(double ang) {
+		this.ang = ang;
+	}
+	
 	//links this Linkable to the given parent, and causes it to visually fade in for
 	//fadeTime frames
 	public void fadeIn(Linkable parent, int fadeTime) {
@@ -266,7 +270,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			hsbComps[2] *= fadeMult;
 			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
 		}
-		if(parent.fadingIn || parent.fadingOut) {
+		if(parent != null && (parent.fadingIn || parent.fadingOut)) {
 			double fadeMult = ((double)parent.fadeTimer / (double)parent.initialFadeTime);
 			if(parent.fadingIn) {
 				fadeMult = 1.0 - fadeMult;

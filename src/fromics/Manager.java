@@ -11,7 +11,7 @@ public abstract class Manager extends Background {
 	public static final int DEF_FRAME_DELAY = 15;
 	public static final int START_DELAY = 20;
 	protected Background[] screens;
-	private int screen;
+	protected int screen;
 	private final int frameDelay;
 	private boolean updated;
 	
@@ -20,6 +20,10 @@ public abstract class Manager extends Background {
 	//so nesting them won't create a weird offset
 	public Manager(Frindow observer) {
 		this(observer, DEF_FRAME_DELAY);
+	}
+	
+	public Background currentScreen() {
+		return screens[screen];
 	}
 	
 	public Manager(Frindow observer, int frameDelayMillis) {
