@@ -35,9 +35,9 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//whether this Linkable is fading out before being unlinked
 	private boolean fadingOut;
 	//the amount of frames left in the fade when fading in or out
-	private int fadeTimer;
+	private double fadeTimer;
 	//the total amount of frames in a fade when fading in or out
-	private int initialFadeTime;
+	private double initialFadeTime;
 	
 	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
@@ -78,23 +78,23 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//links this Linkable to the given parent, and causes it to visually fade in for
 	//fadeTime frames
-	public void fadeIn(Linkable parent, int fadeTime) {
+	public void fadeIn(Linkable parent, double fadeTimeSeconds) {
 		parent.link(this);
 		fadingIn = true;
-		fadeTimer = fadeTime;
-		initialFadeTime = fadeTime;
+		fadeTimer = fadeTimeSeconds;
+		initialFadeTime = fadeTimeSeconds;
 	}
 	
 	//links this Linkable to the given parent, and causes it to visually fade in for
 	//fadeTime frames
-	public void fadeOut(int fadeTime) {
+	public void fadeOut(double fadeTimeSeconds) {
 		fadingOut = true;
-		fadeTimer = fadeTime;
-		initialFadeTime = fadeTime;
+		fadeTimer = fadeTimeSeconds;
+		initialFadeTime = fadeTimeSeconds;
 	}
 	
 	//updates this Linkable and all of it's children
-	public boolean updateAll() {
+	public synchronized boolean updateAll() {
 		updating = true;
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
@@ -103,18 +103,17 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			next.updateAll();
 		}
 		boolean updateVal = update();
-		
-		if(fadingOut && fadeTimer <= 0) {
-			parent.unlink(this);
-			fadingOut = false;
-		}
 		if(fadingIn || fadingOut) {
-			fadeTimer = fadeTimer - 1;
+			fadeTimer = fadeTimer - 0.000001 * dt();
 			if(fadeTimer < 0) {
 				fadingIn = false;
 			}
 		}
 		updating = false;
+		if(fadingOut && fadeTimer <= 0) {
+			parent.unlink(this);
+			fadingOut = false;
+		}
 		if(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
@@ -294,6 +293,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//returns an Iterator for all of the children of this Linkable
 	public Iterator<Linkable> getLinkedIterator() {
 		return linked.iterator();
+	}
+	
+	public int dt() {
+		return parent.dt();
 	}
 	
 	//the function which draws this Linkable, given a total x location, y location and angle

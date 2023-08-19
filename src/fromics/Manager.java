@@ -14,6 +14,7 @@ public abstract class Manager extends Background {
 	protected int screen;
 	private final int frameDelay;
 	private boolean updated;
+	private long dt;
 	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
@@ -29,6 +30,7 @@ public abstract class Manager extends Background {
 	public Manager(Frindow observer, int frameDelayMillis) {
 		super(observer);
 		frameDelay = frameDelayMillis;
+		dt = frameDelayMillis * 1000000;
 		updated = true;
 		setX(0);
 		setY(0);
@@ -68,6 +70,29 @@ public abstract class Manager extends Background {
 		Timer runner = new Timer();
 		runner.schedule(this.new Run(), START_DELAY, frameDelay);
 	}
+	
+	public void startVariableLoop() {
+		Thread runner = new Thread(() -> {
+			boolean running = true;
+			Run r = this.new Run();
+			long time = System.nanoTime();
+			while(running) {
+				long newTime = System.nanoTime();
+				dt = (int)(newTime - time);
+				r.run();
+				int elapsedTime = (int)(System.nanoTime() - newTime);
+				while(elapsedTime < frameDelay * 1000000) {
+					elapsedTime = (int)(System.nanoTime() - newTime);
+				}
+				time = newTime;
+			}
+		});
+		runner.start();
+	}
+	
+	public int dt() {
+		return (int) (dt / 1000l);
+	}
 
 	private class Run extends TimerTask {
 		public void run() {
@@ -78,5 +103,7 @@ public abstract class Manager extends Background {
 			observer.defPaint();
 		}
 	}
+	
+	
 
 }

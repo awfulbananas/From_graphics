@@ -39,6 +39,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	private int height;
 	
+	private boolean painting;
+	
 	//a class for managing frame closure, so that the window actually closes when you hit the X button
 	private class WindowOperator extends WindowAdapter {
 		Frame f;
@@ -63,6 +65,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//constructs a new Frindow in the given color space of size (width, height)
 	public Frindow(int colorType, int width, int height, String name) {
 		contentBuffer = new LinkedList<>();
+		painting = false;
 		frame = new Frame(name);
 		frame.add(this);
 		this.width = width;
@@ -77,7 +80,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		setVisible(false);
 		frame.setVisible(false);
 		new WindowOperator(frame);
-		frame.setResizable(false);
+		frame.setResizable(true);
 		frame.setFocusable(true);
 		setFocusable(true);
 	}
@@ -106,7 +109,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	//paints the Frindow with the default Graphics
 	public void defPaint() {
-		(new Thread(() -> paint(initG))).start();
+		if(!painting) {
+			painting = true;
+			(new Thread(() -> paint(initG))).start();
+		}
 	}
 	
 	//draws the next frame to the screen,
@@ -118,6 +124,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 			game.drawAll(getNewFrame());
 		}
 		g.drawImage(contentBuffer.remove(), 0, 0, this);
+		painting = false;
 	}
 	
 	//adds a new frame to the frame buffer, and returns a Graphics object for drawing on that frame
