@@ -15,18 +15,16 @@ import java.awt.*;
 //I didn't actually write most of this, so I'll put of commenting it for the most part until later
 //you can probably mostly just use the key and codes lists, which contain the keys which are currently pressed
 public class Keys extends KeyAdapter implements KeyListener{
-	public Set<String> keys;
 	public Set<Integer> codes;
-	Queue<KeyEvent> typedEventQueue;
+	Queue<Integer> typedCodeQueue;
 	Queue<KeyEvent> pressedEventQueue;
-	public List<Consumer<KeyEvent>> typedCallbacks;
+	public List<KeypressFunction> typedCallbacks;
 	public List<Consumer<KeyEvent>> pressedCallbacks;
 	private boolean isShiftDown;
 	
 	public Keys() {
-		keys = new HashSet<>();
 		codes = new HashSet<>();
-		typedEventQueue = new LinkedList<>();
+		typedCodeQueue = new LinkedList<>();
 		pressedEventQueue = new LinkedList<>();
 		typedCallbacks = new LinkedList<>();
 		pressedCallbacks = new LinkedList<>();
@@ -39,12 +37,12 @@ public class Keys extends KeyAdapter implements KeyListener{
 			});
 	}
 	
-	public List<Consumer<KeyEvent>> getTriggerSet() {
+	public List<KeypressFunction> getTriggerSet() {
 		return typedCallbacks;
 	}
 	
-	public void addTypedTrigger(Consumer<KeyEvent> trigger) {
-		typedCallbacks.add(trigger);
+	public void addTypedTrigger(KeypressFunction func) {
+		typedCallbacks.add(func);
 	}
 	
 	public void addPressedTrigger(Consumer<KeyEvent> trigger) {
@@ -56,13 +54,13 @@ public class Keys extends KeyAdapter implements KeyListener{
 	}
 	
 	public void keyTyped(KeyEvent e) {
-		typedEventQueue.add(e);
+		super.keyTyped(e);
 	}
 	
 	public void process() {
-		while(!typedEventQueue.isEmpty()) {
-			KeyEvent e = typedEventQueue.remove();
-			for(Consumer<KeyEvent> c : typedCallbacks) {
+		while(!typedCodeQueue.isEmpty()) {
+			int e = typedCodeQueue.remove();
+			for(KeypressFunction c : typedCallbacks) {
 				c.accept(e);
 			}
 		}
@@ -74,8 +72,8 @@ public class Keys extends KeyAdapter implements KeyListener{
 		}
 	}
 	
-	public KeyEvent getNextTypedEvent() {
-		return typedEventQueue.poll();
+	public int getNextTypedEvent() {
+		return typedCodeQueue.poll();
 	}
 	
 	public KeyEvent getNextPressedEvent() {
@@ -83,7 +81,7 @@ public class Keys extends KeyAdapter implements KeyListener{
 	}
 	
 	public Boolean hasTypedEvents() {
-		return !typedEventQueue.isEmpty();
+		return !typedCodeQueue.isEmpty();
 	}
 	
 	public Boolean hasPressedEvents() {
@@ -91,9 +89,9 @@ public class Keys extends KeyAdapter implements KeyListener{
 	}
 	
 	public void processOne() {
-		if(!typedEventQueue.isEmpty()) {
-			KeyEvent e = typedEventQueue.remove();
-			for(Consumer<KeyEvent> c : typedCallbacks) {
+		if(!typedCodeQueue.isEmpty()) {
+			int e = typedCodeQueue.remove();
+			for(KeypressFunction c : typedCallbacks) {
 				c.accept(e);
 			}
 		}
@@ -108,23 +106,18 @@ public class Keys extends KeyAdapter implements KeyListener{
 	@Override
 	public void keyPressed(KeyEvent e) {
 		super.keyPressed(e);
-//		System.out.println(e.getKeyCode());
 		pressedEventQueue.add(e);
-		if (!keys.contains(String.valueOf(e.getKeyChar()).toLowerCase())){
-			keys.add(String.valueOf(e.getKeyChar()).toLowerCase());
-		}
 		if (!codes.contains(e.getKeyCode())){
 			codes.add(e.getKeyCode());
 		}
 	}
+	
 	@Override
 	public void keyReleased(KeyEvent e) {
 		super.keyPressed(e);
-		if (keys.contains(String.valueOf(e.getKeyChar()).toLowerCase())){
-			keys.remove(String.valueOf(e.getKeyChar()).toLowerCase());
-		}
 		if (codes.contains((Integer)e.getKeyCode())){
 			codes.remove((Integer)e.getKeyCode());
+			typedCodeQueue.add(e.getKeyCode());
 		}
 	}
 }

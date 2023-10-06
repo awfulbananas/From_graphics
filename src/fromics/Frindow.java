@@ -62,6 +62,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		return colorType;
 	}
 	
+	public void update() {
+		keys.process();
+	}
+	
 	//constructs a new Frindow in the given color space of size (width, height)
 	public Frindow(int colorType, int width, int height, String name) {
 		contentBuffer = new LinkedList<>();
@@ -179,5 +183,9 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		int mouseX = MouseInfo.getPointerInfo().getLocation().x - this.getLocationOnScreen().x;
 		int mouseY = MouseInfo.getPointerInfo().getLocation().y - this.getLocationOnScreen().y;
 		return new Point(mouseX, mouseY);
+	}
+
+	public void addKeystrokeFunction(KeypressFunction func) {
+		keys.addTypedTrigger(func);
 	}
 }

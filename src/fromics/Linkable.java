@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,6 +73,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		color = Color.WHITE;
 	}
 	
+	//sets the angle of this Linkable
 	public void setAng(double ang) {
 		this.ang = ang;
 	}
@@ -127,6 +129,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//and should return whether it should be unlinked from it's parent
 	public boolean update() {return false;}
 	
+	//adds a consumer to be called whenever a key is pressed which is passed
+	//a KeyEvent corresponding to the key press
+	protected void addKeystrokeFunction(KeypressFunction func) {
+		parent.addKeystrokeFunction(func);
+	}
+	
 	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
 	//these bounds aren't enforced by default, but this method can be used for something like screen-looping
 	public Point getMaxBounds() {
@@ -138,10 +146,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		return parent.getMinBounds();
 	}
 	
+	//returns the current width of the window
 	public int getScreenWidth() {
 		return parent.getScreenWidth();
 	}
 	
+	//returns the current height of the window
 	public int getScreenHeight() {
 		return parent.getScreenHeight();
 	}
@@ -181,6 +191,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
+	//sets the set used to detect key presses
+	//maybe don't use this one unless you need to
 	protected void setKeysSet(Set<Integer> keysPressed) {
 		this.keysPressed = keysPressed;
 	}
@@ -253,10 +265,14 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//returns the parent of this Linkable
 	public Linkable parent() {return parent;}
 	
+	//returns whether the current color model being used has an
+	//alpha component
 	protected boolean hasAlpha() {
 		return parent.hasAlpha();
 	}
 	
+	//sets the drawing color to the default drawing color for this Linkable,
+	//accounting for any fade currently in effect
 	protected void setDefColor(Graphics g) {
 		if(!(fadingIn || fadingOut)) {
 			g.setColor(color);
@@ -284,9 +300,18 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//draws this Linkable, and all its children relative to it's parent
 	public void drawAll(Graphics g) {
 		setDefColor(g);
-		draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
-		for(Linkable l : linked) {
-			l.drawAll(g);
+		try {
+			draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
+		} catch(NullPointerException e) {
+			e.printStackTrace();
+			return;
+		}
+		try {
+			for(Object l : linked) {
+				((Linkable)l).drawAll(g);
+			}
+		} catch(ConcurrentModificationException e) {
+			
 		}
 	}
 	
@@ -295,6 +320,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		return linked.iterator();
 	}
 	
+	//returns the change in time between the previous update and this one
+	//in thousands of nanoseconds
 	public int dt() {
 		return parent.dt();
 	}
@@ -310,30 +337,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
-		Point newXLoc = (new Point(Math.cos(totalAng), Math.sin(totalAng)));
-		Point newYLoc = newXLoc.getPerpendicular();
-		
 		for(int i = 0; i < relativeX.length; i++) {
 			xLocs[i] = (int)((relativeX[i] * size) + totalX);
 			yLocs[i] = (int)((relativeY[i] * size) + totalX);
 		}
 		
-//		g.drawOval((int)totalX - 5, (int)totalY - 5, 10, 10);
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
-	}
-	
-	//returns whether Point test is within the bounds given by minBounds and maxBounds
-	//maybe I should move this to Point
-	
-	//TODO: fix this
-	public static boolean boundsContain(Point minBounds, Point maxBounds, Point origin, double ang,  Point test) {
-		test = test.copy().sub(origin).rot(ang);
-		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
-				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
-	}
-	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
-		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
-				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}
 	
 	//draws a polygon from the points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
@@ -362,7 +371,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
 			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
-//			System.out.println(newPoints[i]);
 		}
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];

@@ -6,8 +6,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Queue;
+
+import fromics.Menu;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.HashMap;
 
 //a collection of methods and classes for parsing different types of files
@@ -15,6 +20,102 @@ public class Files {
 	
 	//make the construcotr private so no instances can be made
 	private Files() {}
+	
+	public static Menu readMenu(String menuPath, Map<String, Runnable> menuActions) throws IOException {
+		FileInputStream menuIn;
+		try {
+			menuIn  = new FileInputStream(new File(menuPath));
+		} catch (FileNotFoundException e) {
+			menuIn = null;
+			e.printStackTrace();
+		}
+		
+		List<MenuItem> items = readMenu(menuIn);
+		MenuItem root = new MenuItem();
+		root.hasSubMenu = true;
+		root.subMenu = items;
+		for(MenuItem i : items) {
+			i.parent = root;
+		}
+		return new Menu(root, menuActions);
+	}
+	
+	private static List<MenuItem> readMenu(FileInputStream in) throws IOException {
+		List<MenuItem> menu = new ArrayList<>();
+		while(true) {
+			menu.add(readMenuItem(in));
+			if(in.available() == 0) {
+				return menu;
+			}
+			char next = (char)in.read();
+			if(next == '}') {
+				return menu;
+			} else if(next != ',') {
+				throw new IllegalArgumentException();
+			}
+		}
+	}
+	
+	private static MenuItem readMenuItem(FileInputStream in) throws IOException {
+		MenuItem item = new MenuItem();
+		item.text = "";
+		while(true) {
+			char next = (char)in.read();
+			if(next == '{') {
+				item.hasSubMenu = true;
+				item.subMenu = readMenu(in);
+				for(MenuItem i : item.subMenu) {
+					i.parent = item;
+				}
+				item.identifier = "m";
+				return item;
+			} else if(next == '[') {
+				item.hasSubMenu = false;
+				String identifier = "";
+				boolean readingIdentifier = true;
+				while(readingIdentifier) {
+					char i = (char)in.read();
+					if(i == ']') {
+						readingIdentifier = false;
+					} else {
+						identifier += i;
+					}
+				}
+				item.identifier = identifier;
+				return item;
+			} else {
+				item.text += next;
+			}
+		}
+	}
+	
+	public static class MenuItem {
+		private boolean hasSubMenu;
+		private MenuItem parent;
+		private String text;
+		private List<MenuItem> subMenu;
+		private String identifier;
+		
+		public String getIdentifier() {
+			return identifier;
+		}
+		
+		public String getText() {
+			return text;
+		}
+		
+		public List<MenuItem> getSubMenu() {
+			if(hasSubMenu) {
+				return subMenu;
+			}
+			return null;
+		}
+		
+		public MenuItem getParent() {
+			return parent;
+		}
+	}
+	
 	
 	
 	//parses an xml file conforming to the xml 1.1 standard

@@ -22,8 +22,12 @@ public class Background extends Linkable {
 	public void drawAll(Graphics g) {
 		setDefColor(g);
 		draw(g, 0, 0, 0);
-		for(int i = 0; i < linked.size(); i++) {
-			linked.get(i).drawAll(g);
+		try {
+			for(int i = 0; i < linked.size(); i++) {
+				linked.get(i).drawAll(g);
+			}
+		} catch(NullPointerException e) {
+			System.out.println("Wierd concurrent modification exception thing, fix this");
 		}
 	}
 	
@@ -57,8 +61,14 @@ public class Background extends Linkable {
 		return observer.getWidth();
 	}
 	
+	@Override
 	public int getScreenHeight() {
 		return observer.getHeight();
+	}
+	
+	@Override
+	protected void addKeystrokeFunction(KeypressFunction func) {
+		observer.addKeystrokeFunction(func);
 	}
 
 	//override this if you want the background to draw something
