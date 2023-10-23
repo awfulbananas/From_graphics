@@ -5,7 +5,6 @@ import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.MouseInfo;
 import java.awt.Panel;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -16,32 +15,39 @@ import java.util.Queue;
 //doesn't actually need the rest of this library to be useful, besides Keys and Mouse
 //maybe these three should go in a different package
 @SuppressWarnings("serial")
-public class Frindow extends Panel implements ActionListener {
+public class Frindow extends Panel {
 public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 	//the Frame which goes on the screen
 	private Frame frame;
 	//the frame buffer, so that there isn't screen flickering with asynchronous operation
 	private Queue<BufferedImage> contentBuffer;
-	//the Mouse object for Managing MouseEvents
-	private Mouse mouse;
 	//the Keys object for managing KeyEvents
 	private Keys keys;
 	//the color space to be used, TYPE_INT_RGP by default
 	private final int colorType;
-	
+	//the target size for the frame buffer, if there's to few frames, the Frindow will draw more to correct,
+	//and if there are to many, it will display more to the screen without drawing more to empty the queue
+	private int targetFrameBufferSize;
+	//the Manager for the program, used for drawing frames
 	private Manager game;
-	
+	//the graphics created when initialized, which is stored because it seems to work best to always use
+	//that one
 	private Graphics initG;
+	//whether or not a frame is currently being painted to the screen
+	private boolean painting;
 	
 	//a class for managing frame closure, so that the window actually closes when you hit the X button
 	private class WindowOperator extends WindowAdapter {
+		//the Frame for the WindowOperator
 		Frame f;
 		
+		//constructs a new WindowOperator for the given Frame
 		public WindowOperator(Frame parent) {
 			f = parent;
 			f.addWindowListener(this);
 		}
 		
+		//called when the x button of the window is clicked
 		@Override
 		public void windowClosing (WindowEvent e) { 
 			f.dispose();
@@ -50,24 +56,37 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
         }  
 	}
 	
+	//returns the current BufferedImage color model of this Frindow
+	public int getColorType() {
+		return colorType;
+	}
+	
+	//called regularly to keep up with keystroke events
+	public void update() {
+		keys.process();
+	}
+	
 	//constructs a new Frindow in the given color space of size (width, height)
-	public Frindow(int colorType, int width, int height) {
+	public Frindow(int colorType, int width, int height, String name) {
 		contentBuffer = new LinkedList<>();
-		frame = new Frame("game");
+		painting = false;
+		frame = new Frame(name);
 		frame.add(this);
-		mouse = new Mouse();
 		keys = new Keys();
 		this.colorType = colorType;
-		frame.addMouseListener(mouse);
 		frame.addKeyListener(keys);
 		setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		frame.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		setVisible(false);
 		frame.setVisible(false);
 		new WindowOperator(frame);
-		frame.setResizable(false);
+		frame.setResizable(true);
 		frame.setFocusable(true);
 		setFocusable(true);
+	}
+	//constructs a new Frindow in the given color space of size (width, height)
+	public Frindow(int colorType, int width, int height) {
+		this(colorType, width, height, "game");
 	}
 	
 	//constructs a new Frindow in TYPE_INT_RGB color space, with width and height based on screen size
@@ -81,6 +100,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	public Graphics init(int bufferCount, Manager game) {
 		this.game = game;
 		for(int i = 0; i < bufferCount; i++) contentBuffer.add(new BufferedImage(getWidth(), getHeight(), colorType));
+		targetFrameBufferSize = bufferCount;
 		setVisible(true);
 		frame.setVisible(true);
 		initG = getGraphics();
@@ -89,7 +109,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	//paints the Frindow with the default Graphics
 	public void defPaint() {
-		(new Thread(() -> paint(initG))).start();
+		if(!painting) {
+			painting = true;
+			(new Thread(() -> paint(initG))).start();
+		}
 	}
 	
 	//draws the next frame to the screen,
@@ -97,10 +120,11 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	@Override
 	public void paint(Graphics g) {
 		game.drawAll(getNewFrame());
-		if(contentBuffer.isEmpty()) {
+		while(contentBuffer.size() < targetFrameBufferSize) {
 			game.drawAll(getNewFrame());
 		}
 		g.drawImage(contentBuffer.remove(), 0, 0, this);
+		painting = false;
 	}
 	
 	//adds a new frame to the frame buffer, and returns a Graphics object for drawing on that frame
@@ -122,32 +146,9 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		return keys;
 	}
 	
-	//returns the Mouse object for this Frindow
-	public Mouse getMouse() {
-		return mouse;
-	}
-	
-	//I don't actually remember what this and tY do
-	public int tX(int x) {
-		return x - this.getLocationOnScreen().x;
-	}
-	
-	public double tX(double x) {
-		return x + this.getLocationOnScreen().x;
-	}
-	 
-	public int tY(int y) {
-		return y - this.getLocationOnScreen().y;
-	}
-	
-	public double tY(double y) {
-		return y + this.getLocationOnScreen().y;
-	}
-	
-	//not sure what this is for, I think I needed to implement it for some reason
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		repaint();
+	//returns the the location of a point in the window from a location in global space
+	public Point locOnScreenFromGlobalLoc(Point globalLoc) {
+		return globalLoc.copy().sub(this.getLocationOnScreen().x, this.getLocationOnScreen().y);
 	}
 	
 	//returns a Point representing the location of the mouse on the frame
@@ -155,5 +156,12 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		int mouseX = MouseInfo.getPointerInfo().getLocation().x - this.getLocationOnScreen().x;
 		int mouseY = MouseInfo.getPointerInfo().getLocation().y - this.getLocationOnScreen().y;
 		return new Point(mouseX, mouseY);
+	}
+	
+	//adds a function to be run whenever a keystroke is detected,
+	//in this case, the keystroke is for any key rather than the usual
+	//only alphanumeric and symbolic keys
+	public void addKeystrokeFunction(KeypressFunction func) {
+		keys.addKeypressFunction(func);
 	}
 }

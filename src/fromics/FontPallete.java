@@ -7,14 +7,20 @@ import java.util.Timer;
 import java.util.TimerTask;
 //a class which when run, displays a window with a sample of every default font option,
 //which is useful for picking fonts
+
+//doesn't use normal fromics updating because it doesn't ever need to update,
+//but I should probably change that to make it more in line with my general code
 public class FontPallete extends Manager {
+	//the array of all the fonts
 	String[] allFonts;
 	
+	//constructs a new FontPallete with the given Frindow
 	public FontPallete(Frindow observer) {
 		super(observer);
 		allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
 	}
-
+	
+	//creates and displays a new FontPallete
 	public static void main(String[] args) throws InterruptedException {
 		Frindow win = new Frindow();
 		FontPallete pallete = new FontPallete(win);
@@ -24,17 +30,20 @@ public class FontPallete extends Manager {
 		t.schedule(pallete.getDrawer(), 10l, 10l);
 	}
 	
+	//the task to be run on a regular basis which draw the FontPallete to the screen
 	private class DrawTask extends TimerTask {
 		public void run() {
 			observer.defPaint();
 		}
 	}
 	
+	//called by the Frindow to draw this FontPallete to the screen
 	@Override
 	public void drawAll(Graphics g) {
 		draw(g, 0, 0, 0);
 	}
 	
+	//draws this FontPallete with the given offsets and Graphics
 	@Override
 	public void draw(Graphics g, double xOff, double yOff, double angOff) {
 		for (int i = 0; i < allFonts.length; i++) {
@@ -43,12 +52,12 @@ public class FontPallete extends Manager {
 		}
 	}
 	
+	//returns the drawer object for this FontPallete
 	public DrawTask getDrawer() {
 		return new DrawTask();
 	}
 	
+	//a method which needs to be implemented but isn't used here
 	@Override
-	protected void initScreen(int n) {
-		
-	}
+	protected void initScreen(int n) {}
 }

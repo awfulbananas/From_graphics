@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,10 +23,22 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//whether this Linkable is updating, used to manage
 	//when new Linkables are Linked
 	protected boolean updating;
-	//only used if a child tries to Link a new Linkable while this one is updating
+	//only used if a child tries to link a new Linkable while this one is updating
 	protected Queue<Linkable> linkQueue;
+	//only used if a child tries to unlink a Linkable while this one is updating
+	protected Queue<Linkable> unlinkQueue;
 	//a Set containing all of the keyboard key currently pressed
 	private Set<Integer> keysPressed;
+	//the default color for this Linkable to be drawn as
+	private Color color;
+	//whether this Linkable is fading in after being linked
+	private boolean fadingIn;
+	//whether this Linkable is fading out before being unlinked
+	private boolean fadingOut;
+	//the amount of frames left in the fade when fading in or out
+	private double fadeTimer;
+	//the total amount of frames in a fade when fading in or out
+	private double initialFadeTime;
 	
 	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
@@ -39,17 +52,54 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		init();
 	}
 	
+	//sets the default drawing color of this Linkable
+	public void setColor(Color c) {
+		this.color = c;
+	}
+	
+	//returns the current default drawing color of this Linkable
+	public Color getColor() {
+		return this.color;
+	}
+	
 	//initializes various values used by this Linkable
 	private void init() {
 		updating = false;
 		parent = null;
 		linkQueue = new LinkedList<>();
+		unlinkQueue = new LinkedList<>();
 		linked = new LinkedList<>();
 		ang = 0;
+		color = Color.WHITE;
+	}
+	
+	//called directly after this Linkable is linked to another Linkable
+	protected void onLink() {}
+	
+	//sets the angle of this Linkable
+	public void setAng(double ang) {
+		this.ang = ang;
+	}
+	
+	//links this Linkable to the given parent, and causes it to visually fade in for
+	//fadeTime frames
+	public void fadeIn(Linkable parent, double fadeTimeSeconds) {
+		parent.link(this);
+		fadingIn = true;
+		fadeTimer = fadeTimeSeconds;
+		initialFadeTime = fadeTimeSeconds;
+	}
+	
+	//links this Linkable to the given parent, and causes it to visually fade in for
+	//fadeTime frames
+	public void fadeOut(double fadeTimeSeconds) {
+		fadingOut = true;
+		fadeTimer = fadeTimeSeconds;
+		initialFadeTime = fadeTimeSeconds;
 	}
 	
 	//updates this Linkable and all of it's children
-	public boolean updateAll() {
+	public synchronized boolean updateAll() {
 		updating = true;
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
@@ -58,9 +108,22 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			next.updateAll();
 		}
 		boolean updateVal = update();
+		if(fadingIn || fadingOut) {
+			fadeTimer = fadeTimer - 0.000001 * dt();
+			if(fadeTimer < 0) {
+				fadingIn = false;
+			}
+		}
 		updating = false;
-		while(!linkQueue.isEmpty()) {
+		if(fadingOut && fadeTimer <= 0) {
+			parent.unlink(this);
+			fadingOut = false;
+		}
+		if(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
+		}
+		if(!unlinkQueue.isEmpty()) {
+			unlink(unlinkQueue.remove());
 		}
 		return updateVal;
 	}
@@ -68,6 +131,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//optional method, if implemented, should run any update functionality, 
 	//and should return whether it should be unlinked from it's parent
 	public boolean update() {return false;}
+	
+	//adds a consumer to be called whenever a key is pressed which is passed
+	//a KeyEvent corresponding to the key press
+	protected void addKeystrokeFunction(KeypressFunction func) {
+		parent.addKeystrokeFunction(func);
+	}
 	
 	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
 	//these bounds aren't enforced by default, but this method can be used for something like screen-looping
@@ -80,10 +149,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		return parent.getMinBounds();
 	}
 	
+	//returns the current width of the window
 	public int getScreenWidth() {
 		return parent.getScreenWidth();
 	}
 	
+	//returns the current height of the window
 	public int getScreenHeight() {
 		return parent.getScreenHeight();
 	}
@@ -123,6 +194,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 	}
 	
+	//sets the set used to detect key presses
+	//maybe don't use this one unless you need to
 	protected void setKeysSet(Set<Integer> keysPressed) {
 		this.keysPressed = keysPressed;
 	}
@@ -137,13 +210,18 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			child.parent = this;
 			linked.add(child);
 			linked.sort(null);
+			child.onLink();
 		}
 	}
 	
 	//unlinks a Linkable from this one, usually called if a Linkable should stop being drawn and updated
 	public void unlink(Linkable child) {
-		child.parent = null;
-		linked.remove(child);
+		if(updating) {
+			unlinkQueue.add(child);
+		} else {
+			child.parent = null;
+			linked.remove(child);
+		}
 	}
 	
 	//compares the z values of two Linkables, altering them to resolve any conflicts,
@@ -178,7 +256,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//returns the number of children of this Linkable
-	public int size() {
+	public int numLinked() {
 		return linked.size();
 	}
 	
@@ -191,17 +269,65 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//returns the parent of this Linkable
 	public Linkable parent() {return parent;}
 	
+	//returns whether the current color model being used has an
+	//alpha component
+	protected boolean hasAlpha() {
+		return parent.hasAlpha();
+	}
+	
+	//sets the drawing color to the default drawing color for this Linkable,
+	//accounting for any fade currently in effect
+	protected void setDefColor(Graphics g) {
+		if(!(fadingIn || fadingOut)) {
+			g.setColor(color);
+		} else {
+			double fadeMult = ((double)fadeTimer / (double)initialFadeTime);
+			if(fadingIn) {
+				fadeMult = 1.0 - fadeMult;
+			}
+			float[] hsbComps = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+			hsbComps[2] *= fadeMult;
+			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
+		}
+		if(parent != null && (parent.fadingIn || parent.fadingOut)) {
+			double fadeMult = ((double)parent.fadeTimer / (double)parent.initialFadeTime);
+			if(parent.fadingIn) {
+				fadeMult = 1.0 - fadeMult;
+			}
+			Color currentColor = g.getColor();
+			float[] hsbComps = Color.RGBtoHSB(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), null);
+			hsbComps[2] *= fadeMult;
+			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
+		}
+	}
+	
 	//draws this Linkable, and all its children relative to it's parent
 	public void drawAll(Graphics g) {
-		draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
-		for(Linkable l : linked) {
-			l.drawAll(g);
+		setDefColor(g);
+		try {
+			draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
+		} catch(NullPointerException e) {
+			e.printStackTrace();
+			return;
+		}
+		try {
+			for(Object l : linked) {
+				((Linkable)l).drawAll(g);
+			}
+		} catch(ConcurrentModificationException e) {
+			
 		}
 	}
 	
 	//returns an Iterator for all of the children of this Linkable
 	public Iterator<Linkable> getLinkedIterator() {
 		return linked.iterator();
+	}
+	
+	//returns the change in time between the previous update and this one
+	//in thousands of nanoseconds
+	public int dt() {
+		return parent.dt();
 	}
 	
 	//the function which draws this Linkable, given a total x location, y location and angle
@@ -215,30 +341,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 		
-		Point newXLoc = (new Point(Math.cos(totalAng), Math.sin(totalAng)));
-		Point newYLoc = newXLoc.getPerpendicular();
-		
 		for(int i = 0; i < relativeX.length; i++) {
 			xLocs[i] = (int)((relativeX[i] * size) + totalX);
 			yLocs[i] = (int)((relativeY[i] * size) + totalX);
 		}
 		
-//		g.drawOval((int)totalX - 5, (int)totalY - 5, 10, 10);
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
-	}
-	
-	//returns whether Point test is within the bounds given by minBounds and maxBounds
-	//maybe I should move this to Point
-	
-	//TODO: fix this
-	public static boolean boundsContain(Point minBounds, Point maxBounds, Point origin, double ang,  Point test) {
-		test = test.copy().sub(origin).rot(ang);
-		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
-				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
-	}
-	public static boolean boundsContain(Point minBounds, Point maxBounds, Point test) {
-		return test.X() < maxBounds.X() && test.X() > minBounds.X() &&
-				test.Y() < maxBounds.Y() && test.Y() > minBounds.Y();
 	}
 	
 	//draws a polygon from the points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
@@ -267,7 +375,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
 			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
-//			System.out.println(newPoints[i]);
 		}
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];

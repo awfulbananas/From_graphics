@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Graphics;
 
+//a class representing a collider with a circular shape
 public class OvalCollider extends Collidable {
 	//the radius of collision
 	private double radius;

@@ -17,10 +17,10 @@ public class StarEffect extends Linkable {
 	private final int starSize;
 	private final int starFadeTime;
 	
-	private int starTimer;
-	private List<Star> stars;
-	private Point bounds;
-	private Random r;
+	protected int starTimer;
+	protected List<Star> stars;
+	protected Point bounds;
+	protected Random r;
 	
 	public StarEffect(int width, int height, int startStarCount, int starLifetime, int starAddTime, int starSize, int starFadeTime) {
 		super(0, 0);
@@ -37,7 +37,7 @@ public class StarEffect extends Linkable {
 		}
 	}
 	
-	private class Star extends Point {
+	protected class Star extends Point {
 		public int timer;
 
 		public Star(int x, int y, int lifetime) {
@@ -49,7 +49,6 @@ public class StarEffect extends Linkable {
 			timer--;
 			return timer < 0;
 		}
-		
 	}
 	
 	@Override
@@ -62,7 +61,7 @@ public class StarEffect extends Linkable {
 		}
 		for(int i = 0; i < stars.size(); i++) {
 			Star next = stars.get(i);	
-			float mag = Math.min(1f, Math.min((float)next.timer / (float)starFadeTime, (float)(starLifetime - next.timer) / (float)starFadeTime));
+			float mag = Math.max(Math.min(1f, Math.min((float)next.timer / (float)starFadeTime, (float)(starLifetime - next.timer) / (float)starFadeTime)), 0f);
 			g.setColor(new Color(mag, mag, mag));
 			g.drawRect((int)next.X(), (int)next.Y(), starSize, starSize);		
 		}

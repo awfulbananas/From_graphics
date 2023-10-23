@@ -8,123 +8,71 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.Queue;
-import java.awt.*;
 
-//I didn't actually write most of this, so I'll put of commenting it for the most part until later
-//you can probably mostly just use the key and codes lists, which contain the keys which are currently pressed
+//a class which manages key events and keeps track of which keys are being held
 public class Keys extends KeyAdapter implements KeyListener{
-	public Set<String> keys;
+	//a Set containing the key codes for every key which is currently being pressed
 	public Set<Integer> codes;
-	Queue<KeyEvent> typedEventQueue;
-	Queue<KeyEvent> pressedEventQueue;
-	public List<Consumer<KeyEvent>> typedCallbacks;
-	public List<Consumer<KeyEvent>> pressedCallbacks;
-	private boolean isShiftDown;
+	//a queue of key codes for key released events in chronological order
+	//used to determine when a key has been typed and if a key is being held
+	Queue<Integer> typedCodeQueue;
+	//a List of all functions to be run whenever a key is typed
+	public List<KeypressFunction> keypressFunctions;
 	
 	public Keys() {
-		keys = new HashSet<>();
 		codes = new HashSet<>();
-		typedEventQueue = new LinkedList<>();
-		pressedEventQueue = new LinkedList<>();
-		typedCallbacks = new LinkedList<>();
-		pressedCallbacks = new LinkedList<>();
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(
-			new KeyEventDispatcher() {
-				public boolean dispatchKeyEvent(KeyEvent e) {
-					isShiftDown = e.isShiftDown();
-					return false;
-				}
-			});
+		typedCodeQueue = new LinkedList<>();
+		keypressFunctions = new LinkedList<>();
 	}
 	
-	public List<Consumer<KeyEvent>> getTriggerSet() {
-		return typedCallbacks;
+	//returns a list of all KeypressFunctions which are called whenever a key is typed
+	public List<KeypressFunction> getkeypressFunctions() {
+		return keypressFunctions;
 	}
 	
-	public void addTypedTrigger(Consumer<KeyEvent> trigger) {
-		typedCallbacks.add(trigger);
+	//adds a new KeypressFunction to be called when a key is tyed
+	public void addKeypressFunction(KeypressFunction func) {
+		if(!keypressFunctions.contains(func))
+			keypressFunctions.add(func);
 	}
 	
-	public void addPressedTrigger(Consumer<KeyEvent> trigger) {
-		pressedCallbacks.add(trigger);
-	}
-	
-	public boolean isShiftDown() {
-		return isShiftDown;
-	}
-	
-	public void keyTyped(KeyEvent e) {
-		typedEventQueue.add(e);
-	}
-	
+	//processes all currently queued key typed codes, running relevant KeypressFunctions
 	public void process() {
-		while(!typedEventQueue.isEmpty()) {
-			KeyEvent e = typedEventQueue.remove();
-			for(Consumer<KeyEvent> c : typedCallbacks) {
-				c.accept(e);
-			}
-		}
-		while(!pressedEventQueue.isEmpty()) {
-			KeyEvent e = pressedEventQueue.remove();
-			for(Consumer<KeyEvent> c : pressedCallbacks) {
+		while(!typedCodeQueue.isEmpty()) {
+			int e = typedCodeQueue.remove();
+			for(KeypressFunction c : keypressFunctions) {
 				c.accept(e);
 			}
 		}
 	}
 	
-	public KeyEvent getNextTypedEvent() {
-		return typedEventQueue.poll();
-	}
-	
-	public KeyEvent getNextPressedEvent() {
-		return pressedEventQueue.poll();
-	}
-	
-	public Boolean hasTypedEvents() {
-		return !typedEventQueue.isEmpty();
-	}
-	
-	public Boolean hasPressedEvents() {
-		return !pressedEventQueue.isEmpty();
-	}
-	
+	//processes only the oldest keypress event, running relevant KeypressFunctions
 	public void processOne() {
-		if(!typedEventQueue.isEmpty()) {
-			KeyEvent e = typedEventQueue.remove();
-			for(Consumer<KeyEvent> c : typedCallbacks) {
-				c.accept(e);
-			}
-		}
-		if(!pressedEventQueue.isEmpty()) {
-			KeyEvent e = pressedEventQueue.remove();
-			for(Consumer<KeyEvent> c : pressedCallbacks) {
+		if(!typedCodeQueue.isEmpty()) {
+			int e = typedCodeQueue.remove();
+			for(KeypressFunction c : keypressFunctions) {
 				c.accept(e);
 			}
 		}
 	}
 	
+	//adds a key to the queue of pressed key events whenever a key is pressed
 	@Override
 	public void keyPressed(KeyEvent e) {
 		super.keyPressed(e);
-//		System.out.println(e.getKeyCode());
-		pressedEventQueue.add(e);
-		if (!keys.contains(String.valueOf(e.getKeyChar()).toLowerCase())){
-			keys.add(String.valueOf(e.getKeyChar()).toLowerCase());
-		}
 		if (!codes.contains(e.getKeyCode())){
 			codes.add(e.getKeyCode());
 		}
 	}
+	
+	//adds a key to the queue of released key events whenever a key is released
 	@Override
 	public void keyReleased(KeyEvent e) {
 		super.keyPressed(e);
-		if (keys.contains(String.valueOf(e.getKeyChar()).toLowerCase())){
-			keys.remove(String.valueOf(e.getKeyChar()).toLowerCase());
-		}
 		if (codes.contains((Integer)e.getKeyCode())){
 			codes.remove((Integer)e.getKeyCode());
+			typedCodeQueue.add(e.getKeyCode());
 		}
 	}
 }
