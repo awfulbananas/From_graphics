@@ -4,19 +4,33 @@ import java.util.Arrays;
 
 import fromics.Point;
 
+//a class representing a bezier spline using a set of control points which are 
+//generally assumed to remain static
 public class BezierSpline {
+	//the step used when calculating the distances along the spline
 	public static final double DIST_CALC_STEP = 0.001;
+	//the detail used when calculating the distances along the spline,
+	//which is just the inverse of the above constant precalculated for more precision
 	public static final int DIST_CALC_DETAIL = 1000;
+	//the coefficients for each control point to be multiplied by when calculating a point on the spline
 	private final Point[] coefficients;
+	//the control points used to define the spline
 	private final Point[] controlPoints;
+	//a list of distances along the spline, used to calculate points on the spline
+	//which are a specific distance along the curve
 	private double[] dists;
+	//the t values for the distances along the spline
 	private double[] distTPairs;
+	//the total distance of the spline
 	private double totalDist;
+	//whether or not the distances along the spline has been calculated,
+	//the distances are not calculated unless needed for performance
 	private boolean distancesCalculated;
+	//the number of dimensions of the spline
+	//(generalization, yay)
 	private int dims;
 	
-	protected boolean isShown;
-	
+	//constructs a new BezierSpline with the given control points
 	public BezierSpline(Point[] controlPoints) {
 		this.controlPoints = controlPoints;
 		dims = controlPoints[0].dims();
@@ -24,10 +38,11 @@ public class BezierSpline {
 			if(controlPoints[i].dims() < dims) dims = controlPoints[i].dims();
 		}
 		coefficients = calculatePointCoefficients(controlPoints.length);
-		isShown = true;
 		distancesCalculated = false;
 	}
 	
+	//constructs a new BezierSpline with the given origin and
+	//array of pairs of x and y offsets from that origin
 	public BezierSpline(double[] values, Point origin) {
 		controlPoints = new Point[values.length / 2];
 		for(int i = 0; i < controlPoints.length; i++) {
@@ -35,12 +50,13 @@ public class BezierSpline {
 		}
 		dims = 2;
 		coefficients = calculatePointCoefficients(controlPoints.length);
-		isShown = true;
 		distancesCalculated = false;
 	}
 	
+	//returns the coefficients for a bezier spline with the given number of control points
+	//this could be precalculated, but it's not that slow like this
 	private Point[] calculatePointCoefficients(int points) {
-		int[][] mat = new int[points][points];
+		long[][] mat = new long[points][points];
 		Point[] coefficients = new Point[points];
 		
 		for(int i = 0; i < points; i++) {
@@ -59,7 +75,7 @@ public class BezierSpline {
 		}
 		
 		
-		for(int[] arr : mat) {
+		for(long[] arr : mat) {
 			System.out.println(Arrays.toString(arr));
 		}
 		
@@ -74,6 +90,9 @@ public class BezierSpline {
 		return coefficients;
 	}
 	
+	//returns the point along the spline for the given value of t,
+	//where t=0 is the start of the spline, and t=1 is the end.
+	//t can be outside of that range, but the spline often approaches extreme values
 	public Point get(double t) {
 		if(t == 0){
 			return controlPoints[0].copy();
@@ -92,6 +111,8 @@ public class BezierSpline {
 		}
 	}
 	
+	//calculates approximate distances along the spline from the start of the spline, 
+	//and their corresponding t values
 	public double calculateDistances() {
 		if(!distancesCalculated) {
 			Point prev = getStart();
@@ -117,6 +138,7 @@ public class BezierSpline {
 		return totalDist;
 	}
 	
+	//returns the t value approximately at the given distance along the spline
 	public double getTAtDist(double dist) {
 		if(!distancesCalculated) calculateDistances();
 		double pivot = ((double)dists.length) / 2.0;
@@ -142,24 +164,29 @@ public class BezierSpline {
 		}
 	}
 	
+	//returns the point at the given distance along the spline
 	public Point getAtDist(double dist) {
 		double t = getTAtDist(dist);
 		Point loc = get(t);
 		return loc;
 	}
 	
+	//returns the starting location of the spline
 	public Point getStart() {
 		return controlPoints[0].copy();
 	}
 	
+	//returns the ending location of the spline
 	public Point getEnd() {
 		return controlPoints[controlPoints.length - 1].copy();
 	}
 	
+	//returns the nth control point of the spline
 	public Point get(int n) {
-		return controlPoints[n];
+		return controlPoints[n].copy();
 	}
 	
+	//returns a String representation of the spline as the start and end locations
 	public String toString() {
 		return "start: " + getStart() + "\nend:   " + getEnd();
 	}

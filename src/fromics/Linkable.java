@@ -73,6 +73,9 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		color = Color.WHITE;
 	}
 	
+	//called directly after this Linkable is linked to another Linkable
+	protected void onLink() {}
+	
 	//sets the angle of this Linkable
 	public void setAng(double ang) {
 		this.ang = ang;
@@ -207,6 +210,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			child.parent = this;
 			linked.add(child);
 			linked.sort(null);
+			child.onLink();
 		}
 	}
 	

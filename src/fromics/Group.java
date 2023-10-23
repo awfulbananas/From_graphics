@@ -107,6 +107,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 		return linked.size();
 	}
 	
+	//returns the number of Linkables of type E linked to this Group
 	public int size() {
 		return numLinked();
 	}
@@ -116,8 +117,9 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//the override this method in addition to .draw()
 	@Override
 	public void drawAll(Graphics g) {
-		for(Linkable l : linked) {
-			l.drawAll(g);
+		Object[] currentLinked = linked.toArray();
+		for(Object l : currentLinked) {
+			((Linkable)l).drawAll(g);
 		}
 	}
 	

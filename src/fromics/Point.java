@@ -13,19 +13,19 @@ public class Point {
 	//ie. x-value is vals[0], y-value is vals[1], etc.
 	protected double[] vals;
 	
-	//constructs a 2d Point at (0, 0)
+	//constructs a new 2d Point at (0, 0)
 	public Point() {
 		this(0, 0);
 	}
 	
-	//constructs a 2d Point at (x, y)
+	//constructs a new 2d Point at (x, y)
 	public Point(double x, double y) {
 		vals = new double[2];
 		vals[0] = x;
 		vals[1] = y;
 	}
 	
-	//constructs a 3d Point at (x, y, z)
+	//constructs a new 3d Point at (x, y, z)
 	public Point(double x, double y, double z) {
 		vals = new double[3];
 		vals[0] = x;
@@ -70,6 +70,7 @@ public class Point {
 		return this;
 	}
 	
+	//returns the number of dimensions of the Point
 	public int dims() {
 		return vals.length;
 	}
@@ -164,7 +165,7 @@ public class Point {
 	}
 	
 	//divides all this Point's values by d
-	//returnsthis Point
+	//returns this Point
 	public Point div(double d) {
 		for(int i = 0; i < vals.length; i++) {
 			vals[i] /= d;
@@ -172,11 +173,20 @@ public class Point {
 		return this;
 	}
 	
-	//multiplies all this Point's valued by d 
+	//multiplies all this Point's values by double d 
 	//returns this Point
 	public Point mult(double d) {
 		for(int i = 0; i < vals.length; i++) {
 			vals[i] *= d;
+		}
+		return this;
+	}
+	
+	//multiplies all this Point's values by long l 
+	//returns this Point
+	public Point mult(long l) {
+		for(int i = 0; i < vals.length; i++) {
+			vals[i] *= l;
 		}
 		return this;
 	}
@@ -306,6 +316,8 @@ public class Point {
 		return matrixTransform(newXLoc, newYLoc);
 	}
 	
+	//clamps the value of a Point between the limits given by minimum and maximum Points such that 
+	//min.X() <= max.X() and min.Y() <= max.Y()
 	public Point clamp(Point min, Point max) {
 		if(min.dims() != max.dims()) {
 			throw new IllegalArgumentException("arguments must have the same number of dimensions");
@@ -351,5 +363,31 @@ public class Point {
 	//accepts this Point with Consumer<Point> c
 	public void transform(Consumer<Point> c) {
 		c.accept(this);
+	}
+	
+	//returns whether this Point is within the given minimum and maximum bounds
+	public boolean isWithinBounds(Point boundsMin, Point boundsMax) {
+		double minX;
+		double maxX;
+		double minY;
+		double maxY;
+		
+		if(boundsMin.X() < boundsMax.X()) {
+			minX = boundsMin.X();
+			maxX = boundsMax.X();
+		} else {
+			maxX = boundsMin.X();
+			minX = boundsMax.X();
+		}
+		
+		if(boundsMin.Y() < boundsMax.Y()) {
+			minY = boundsMin.Y();
+			maxY = boundsMax.Y();
+		} else {
+			maxY = boundsMin.Y();
+			minY = boundsMax.Y();
+		}
+		
+		return minX <= X() && X() <= maxX && minY <= Y() && Y() <= maxY;
 	}
 }

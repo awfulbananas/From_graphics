@@ -38,7 +38,7 @@ public class Texture extends Linkable{
 		super(0, 0);
 	}
 	
-	//draws this texture using Graphics g
+	//draws this texture using Graphics g, and the given x, y, and angle offsets
 	@Override
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
 		double totAng = (angOff + ang);
@@ -51,6 +51,7 @@ public class Texture extends Linkable{
 		drawImg(g, rotated, xOff, yOff);
 	}
 	
+	//returns a rotated version of the given BufferedImage using the given angle
 	public static BufferedImage getRotatedImage(BufferedImage img, double ang) {
 		
 		if(ang % (Math.PI * 2) == 0) {
@@ -62,6 +63,7 @@ public class Texture extends Linkable{
 		}
 	}
 	
+	//returns a version of the given image rotated by 90*ang degrees
 	private static BufferedImage perpendicularRotation(BufferedImage img, int ang) {
 		int width = img.getWidth();
 		int height = img.getHeight();
@@ -98,6 +100,8 @@ public class Texture extends Linkable{
 		return newImg;
 	}
 	
+	//returns a rotated version of the given BufferedImage using an image rotation algorithm
+	//rather than using an exact perpendicular rotation
 	private static BufferedImage generalRotation(BufferedImage img, double ang) {
 		//calculate the unit vectors for the rotation
 		Point tX = (new Point(1, 0)).rot(ang);
@@ -163,6 +167,7 @@ public class Texture extends Linkable{
 		return rotated;
 	}
 	
+	//draws the given image to the screen using the given Graphics, and x and y offsets
 	private void drawImg(Graphics g, BufferedImage img, double xOff, double yOff) {
 		g.drawImage(img, (int)(xOff + X() - size * img.getWidth() / 2), 
 				(int)(yOff + Y() - size * img.getHeight() / 2), 
@@ -171,6 +176,7 @@ public class Texture extends Linkable{
 				0, 0, img.getWidth(), img.getHeight(), null);
 	}
 	
+	//loads the image with the given filename if available, likely crashing the program otherwise
 	public static BufferedImage loadImage(String pathName) {
 		BufferedImage texture = null;
 		try {

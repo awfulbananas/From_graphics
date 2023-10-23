@@ -2,6 +2,10 @@ package fromics;
 
 import java.util.function.Consumer;
 
+//honestly this is somewhat useless, but in theory
+//it represents a tree which can be iterated of very quickly,
+//I'm just not sure it's actually any quicker than using a list
+//unless I decide to multi-thread it
 public class IteratorTree<E> {
 	private Node root;
 	private class Node {

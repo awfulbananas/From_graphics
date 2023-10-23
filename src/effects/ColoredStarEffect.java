@@ -9,9 +9,8 @@ import java.util.Random;
 import fromics.Linkable;
 import fromics.Point;
 
-//this class represents an effect of stars fading in and out in a specified area
-//I use this for a background in space, or for a night sky
-public class StarEffect extends Linkable {
+//this class represents an effect of somewhat naturally colored stars fading in and out in a specified area
+public class ColoredStarEffect extends Linkable {
 	private final int starLifetime;
 	private final int starAddTime;
 	private final int starSize;
@@ -22,7 +21,7 @@ public class StarEffect extends Linkable {
 	protected Point bounds;
 	protected Random r;
 	
-	public StarEffect(int width, int height, int startStarCount, int starLifetime, int starAddTime, int starSize, int starFadeTime) {
+	public ColoredStarEffect(int width, int height, int startStarCount, int starLifetime, int starAddTime, int starSize, int starFadeTime) {
 		super(0, 0);
 		this.starLifetime = starLifetime;
 		this.starAddTime = starAddTime;
@@ -39,10 +38,18 @@ public class StarEffect extends Linkable {
 	
 	protected class Star extends Point {
 		public int timer;
+		public Color c;
 
 		public Star(int x, int y, int lifetime) {
 			super(x, y); 
 			this.timer = lifetime;
+			double colorHue;
+			if(Math.random() < 0.5) {
+				colorHue = (Math.random() * 30 + 100) / 360;
+			} else {
+				colorHue = (Math.random() * 34 + 1) / 360;
+			}
+			c = Color.getHSBColor((float)colorHue, (float)(Math.random() * 0.88), 1f);
 		}
 		
 		public boolean isDone() {
@@ -61,8 +68,9 @@ public class StarEffect extends Linkable {
 		}
 		for(int i = 0; i < stars.size(); i++) {
 			Star next = stars.get(i);	
-			float mag = Math.max(Math.min(1f, Math.min((float)next.timer / (float)starFadeTime, (float)(starLifetime - next.timer) / (float)starFadeTime)), 0f);
-			g.setColor(new Color(mag, mag, mag));
+			float mag = Math.min(1f, Math.min((float)next.timer / (float)starFadeTime, (float)(starLifetime - next.timer) / (float)starFadeTime));
+			Color c = next.c;
+			g.setColor(new Color(((float)c.getRed() / 255) * mag, ((float)c.getGreen() / 255) * mag, ((float)c.getBlue() / 255) * mag));
 			g.drawRect((int)next.X(), (int)next.Y(), starSize, starSize);		
 		}
 	}

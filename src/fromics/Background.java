@@ -36,6 +36,7 @@ public class Background extends Linkable {
 		return false;
 	}
 	
+	//returns whether the Frindow this background is displayed on uses a colour model with an alpha channel
 	protected boolean hasAlpha() {
 		int colorType = observer.getColorType();
 		return colorType == BufferedImage.TYPE_INT_ARGB || colorType == BufferedImage.TYPE_4BYTE_ABGR;
@@ -56,16 +57,19 @@ public class Background extends Linkable {
 		return new Point(observer.getWidth() / -2, observer.getHeight() / -2);
 	}
 	
+	//returns the width of the window
 	@Override
 	public int getScreenWidth() {
 		return observer.getWidth();
 	}
 	
+	//returns the height of the window
 	@Override
 	public int getScreenHeight() {
 		return observer.getHeight();
 	}
 	
+	//adds a function to be run whenever a keystroke happens (including control keys like arrows, shift and ctrl)
 	@Override
 	protected void addKeystrokeFunction(KeypressFunction func) {
 		observer.addKeystrokeFunction(func);

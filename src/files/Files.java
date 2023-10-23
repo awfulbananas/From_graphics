@@ -18,9 +18,11 @@ import java.util.HashMap;
 //a collection of methods and classes for parsing different types of files
 public class Files {
 	
-	//make the construcotr private so no instances can be made
+	//make the constructor private so no instances can be made
 	private Files() {}
 	
+	//constructs a new Menu with the given filename for a menu file and map of menu action names
+	//to menu actions
 	public static Menu readMenu(String menuPath, Map<String, Runnable> menuActions) throws IOException {
 		FileInputStream menuIn;
 		try {
@@ -40,6 +42,7 @@ public class Files {
 		return new Menu(root, menuActions);
 	}
 	
+	//returns a list of menu items read from a menu file with the given FileInputStream
 	private static List<MenuItem> readMenu(FileInputStream in) throws IOException {
 		List<MenuItem> menu = new ArrayList<>();
 		while(true) {
@@ -56,6 +59,7 @@ public class Files {
 		}
 	}
 	
+	//returns a single menu item read from a menu file using the given FileInputStream
 	private static MenuItem readMenuItem(FileInputStream in) throws IOException {
 		MenuItem item = new MenuItem();
 		item.text = "";
@@ -89,6 +93,9 @@ public class Files {
 		}
 	}
 	
+	//a class representing an item within a menu
+	//it's public so that menus can either be constructed 
+	//Programmatically or loaded from a file
 	public static class MenuItem {
 		private boolean hasSubMenu;
 		private MenuItem parent;
@@ -251,16 +258,22 @@ public class Files {
 		return element;
 	}
 	
+	//skips through all whitespace characters present from the given FileInputStream
+	//and return the first non-whitespace character read
 	private static char skipWhitespace(FileInputStream in) throws IOException {
 		char c = (char)in.read();
 		while(Character.isWhitespace(c)) c = (char)in.read();
 		return c;
 	}
 	
+	//returns a String of the next bytes in the file from the given FileInputStream up until
+	//a space character of the end of the file
 	private static String readNext(FileInputStream in) throws IOException {
 		return readNext(in, ' ');
 	}
 	
+	//returns a String of the next bytes in the file from the given FileInputStream up until
+	//the given end character, a whitespace character, or the end of the file
 	private static String readNext(FileInputStream in, char endChar) throws IOException {
 		String s = "";
 		char next = (char)in.read();
@@ -273,6 +286,8 @@ public class Files {
 		return s;
 	}
 	
+	//returns a String of the next bytes in the file from the given FileInputStream up until
+	//the given end character or the end of the file
 	private static String readAllNext(FileInputStream in, char endChar) throws IOException {
 		String s = "";
 		char next = (char)in.read();

@@ -32,15 +32,19 @@ import fromics.Point;
 //all commands use relative coordinates for lowercase and absolute for uppercase,
 //but all commands are saved in absolute coordinates as splines
 public class SplinePath extends Linkable {
+	//the detail which the SplinePath should be drawn with
 	public static final int DRAW_DETAIL = 1000;
 	
+	//a list of all the splines in the SplinePath
 	private BezierSpline[] splines;
+	//the multiplier for size when drawing this SplinePath
 	private double size;
+	//whether or not the total distance of the SplinePath has been calculated
 	private boolean distanceCalculated;
+	//the total distance of this SplinePath, if it's been calculated
 	private double distance;
 	
-	
-	
+	//constructs a new SplinePath with the given location, color and BezierSplines
 	public SplinePath(double x, double y, Color c, BezierSpline[] splines) {
 		super(x, y);
 		setColor(c);
@@ -50,6 +54,7 @@ public class SplinePath extends Linkable {
 		size = 1;
 	}
 	
+	//returns a formatted version of a pathData String for easier parsing
 	private String formatPathData(String pathData) {
 		char[] oldString = pathData.toCharArray();
 		StringBuilder newString = new StringBuilder(oldString.length);
@@ -214,6 +219,7 @@ public class SplinePath extends Linkable {
 		System.out.println(Arrays.toString(this.splines));
 	}
 	
+	//constructs a new SplinePath with the given color from the given file
 	public SplinePath(File splineFile, Color c) {
 		super(0, 0);
 		setColor(c);
@@ -259,14 +265,18 @@ public class SplinePath extends Linkable {
 		}
 	}
 	
+	//sets the drawing size of this SplinePath
 	public void setSize(double size) {
 		this.size = size;
 	}
 	
+	//returns an array of evenly spaced points distDiff units apart from each other along the curve
 	public Point[] getEvenPointArr(double distDiff) {
 		return getEvenPointArr(distDiff, 0, 0);
 	}
 	
+	//returns an array of evenly spaced points distDiff units apart from each other along the curve
+	//with the given x and y offsets
 	public Point[] getEvenPointArr(double distDiff, double xOff, double yOff) {
 		if(!distanceCalculated) {
 			calculateDistance();
@@ -292,29 +302,31 @@ public class SplinePath extends Linkable {
 		return points;
 	}
 	
+	//returns an array of points along the SplinePath with evenly spaced t values and the given x and y offsets
 	public Point[] getUnevenPointArr(double tDiff, double xOff, double yOff) {
 		Point[] points = new Point[(int)(splines.length / tDiff)];
 		System.out.println(points.length);
 		//loop through every spline, keeping track of the distance overshot of the previous spline
-		double tOver = 0;
 		int j = 0;
 		System.out.println(points.length);
+		double t = 0;
 		for(int i = 0; i < splines.length; i++) {
 			BezierSpline current = splines[i];
 			//loop through distances of the current spline
 			//separated by the distance difference, also keeping track
 			//of the current point index
-			double t = 0;
 			while(t <= 1.0) {
 				points[j] = current.get(t).mult(size).add(xOff, yOff);
 				t += tDiff; 
 				j++;
 			}
+			t -= 1;
 		}
 		System.out.println("done");
 		return points;
 	}
 	
+	//calculates the total distance of the SplinePath
 	private void calculateDistance() {
 		distance = 0;
 		for(BezierSpline s : splines) {
@@ -322,6 +334,7 @@ public class SplinePath extends Linkable {
 		}
 	}
 	
+	//draws this SplinePath using the given Graphics and x and y offsets
 	@Override
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
 		final double diff = 1.0 / DRAW_DETAIL;

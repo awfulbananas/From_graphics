@@ -8,110 +8,65 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.Queue;
-import java.awt.*;
 
-//I didn't actually write most of this, so I'll put of commenting it for the most part until later
-//you can probably mostly just use the key and codes lists, which contain the keys which are currently pressed
+//a class which manages key events and keeps track of which keys are being held
 public class Keys extends KeyAdapter implements KeyListener{
+	//a Set containing the key codes for every key which is currently being pressed
 	public Set<Integer> codes;
+	//a queue of key codes for key released events in chronological order
+	//used to determine when a key has been typed and if a key is being held
 	Queue<Integer> typedCodeQueue;
-	Queue<KeyEvent> pressedEventQueue;
-	public List<KeypressFunction> typedCallbacks;
-	public List<Consumer<KeyEvent>> pressedCallbacks;
-	private boolean isShiftDown;
+	//a List of all functions to be run whenever a key is typed
+	public List<KeypressFunction> keypressFunctions;
 	
 	public Keys() {
 		codes = new HashSet<>();
 		typedCodeQueue = new LinkedList<>();
-		pressedEventQueue = new LinkedList<>();
-		typedCallbacks = new LinkedList<>();
-		pressedCallbacks = new LinkedList<>();
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(
-			new KeyEventDispatcher() {
-				public boolean dispatchKeyEvent(KeyEvent e) {
-					isShiftDown = e.isShiftDown();
-					return false;
-				}
-			});
+		keypressFunctions = new LinkedList<>();
 	}
 	
-	public List<KeypressFunction> getTriggerSet() {
-		return typedCallbacks;
+	//returns a list of all KeypressFunctions which are called whenever a key is typed
+	public List<KeypressFunction> getkeypressFunctions() {
+		return keypressFunctions;
 	}
 	
-	public void addTypedTrigger(KeypressFunction func) {
-		typedCallbacks.add(func);
+	//adds a new KeypressFunction to be called when a key is tyed
+	public void addKeypressFunction(KeypressFunction func) {
+		if(!keypressFunctions.contains(func))
+			keypressFunctions.add(func);
 	}
 	
-	public void addPressedTrigger(Consumer<KeyEvent> trigger) {
-		pressedCallbacks.add(trigger);
-	}
-	
-	public boolean isShiftDown() {
-		return isShiftDown;
-	}
-	
-	public void keyTyped(KeyEvent e) {
-		super.keyTyped(e);
-	}
-	
+	//processes all currently queued key typed codes, running relevant KeypressFunctions
 	public void process() {
 		while(!typedCodeQueue.isEmpty()) {
 			int e = typedCodeQueue.remove();
-			for(KeypressFunction c : typedCallbacks) {
-				c.accept(e);
-			}
-		}
-		while(!pressedEventQueue.isEmpty()) {
-			KeyEvent e = pressedEventQueue.remove();
-			for(Consumer<KeyEvent> c : pressedCallbacks) {
+			for(KeypressFunction c : keypressFunctions) {
 				c.accept(e);
 			}
 		}
 	}
 	
-	public int getNextTypedEvent() {
-		return typedCodeQueue.poll();
-	}
-	
-	public KeyEvent getNextPressedEvent() {
-		return pressedEventQueue.poll();
-	}
-	
-	public Boolean hasTypedEvents() {
-		return !typedCodeQueue.isEmpty();
-	}
-	
-	public Boolean hasPressedEvents() {
-		return !pressedEventQueue.isEmpty();
-	}
-	
+	//processes only the oldest keypress event, running relevant KeypressFunctions
 	public void processOne() {
 		if(!typedCodeQueue.isEmpty()) {
 			int e = typedCodeQueue.remove();
-			for(KeypressFunction c : typedCallbacks) {
-				c.accept(e);
-			}
-		}
-		if(!pressedEventQueue.isEmpty()) {
-			KeyEvent e = pressedEventQueue.remove();
-			for(Consumer<KeyEvent> c : pressedCallbacks) {
+			for(KeypressFunction c : keypressFunctions) {
 				c.accept(e);
 			}
 		}
 	}
 	
+	//adds a key to the queue of pressed key events whenever a key is pressed
 	@Override
 	public void keyPressed(KeyEvent e) {
 		super.keyPressed(e);
-		pressedEventQueue.add(e);
 		if (!codes.contains(e.getKeyCode())){
 			codes.add(e.getKeyCode());
 		}
 	}
 	
+	//adds a key to the queue of released key events whenever a key is released
 	@Override
 	public void keyReleased(KeyEvent e) {
 		super.keyPressed(e);

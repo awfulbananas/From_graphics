@@ -18,6 +18,9 @@ public abstract class Manager extends Background {
 	protected boolean updated;
 	private long dt;
 	
+	//TODO: add a constructor for a Manager to be used as a sub-menu or other non-main screens
+	//or else create a different class for that purpose
+	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
 	//so nesting them won't create a weird offset
@@ -25,18 +28,20 @@ public abstract class Manager extends Background {
 		this(observer, DEF_DRAW_DELAY, DEF_UPDATE_DELAY);
 	}
 	
+	//constructs a new Manager with the given Frindow, draw delay, and update delay
+		public Manager(Frindow observer, int drawDelayMillis, int updateDelayMillis) {
+			super(observer);
+			updateDelay = updateDelayMillis;
+			drawDelay = drawDelayMillis;
+			dt = updateDelayMillis * 1000000;
+			updated = true;
+			setX(0);
+			setY(0);
+		}
+	
+	//returns the currently displayed screen of this Manager
 	public Background currentScreen() {
 		return screens[screen];
-	}
-	
-	public Manager(Frindow observer, int drawDelayMillis, int updateDelayMillis) {
-		super(observer);
-		updateDelay = updateDelayMillis;
-		drawDelay = drawDelayMillis;
-		dt = updateDelayMillis * 1000000;
-		updated = true;
-		setX(0);
-		setY(0);
 	}
 	
 	//updates the current screen of the Manager,
@@ -71,6 +76,8 @@ public abstract class Manager extends Background {
 	//0 of screens, and if it's passed 1, then it should
 	protected abstract void initScreen(int n);
 	
+	//begins the loop of updating Linkables and drawing frames, using java Timers to run the
+	//tasks as close to the given delays as possible
 	public void startLoop() {
 		Timer updateRunner = new Timer();
 		updateRunner.schedule(this.new RunUpdate(), START_DELAY, updateDelay);
@@ -78,6 +85,9 @@ public abstract class Manager extends Background {
 		drawRunner.schedule(this.new RunDraw(), START_DELAY, drawDelay);
 	}
 	
+	//begins the loop of updating Linkables and drawing frames, but using a variable framerate method
+	//which prevents updating or drawing things at the same time in slow programs, but removes the
+	//consistency of framerate present in the non-variable loop
 	public void startVariableLoop() {
 		Thread updateRunner = new Thread(() -> {
 			boolean running = true;
@@ -110,10 +120,12 @@ public abstract class Manager extends Background {
 		drawRunner.start();
 	}
 	
+	//returns the amout of time that passed between the start of the previous frame and the start of this frame
 	public int dt() {
 		return (int) (dt / 1000l);
 	}
-
+	
+	//a class representing a task for updating all linked Linkables at a regular interval using a java Timer
 	private class RunUpdate extends TimerTask {
 		public void run() {
 			if(updated) {
@@ -123,6 +135,7 @@ public abstract class Manager extends Background {
 		}
 	}
 	
+	//a class representing a task for drawing all linked Linkables at a regular interval using a java Timer
 	private class RunDraw extends TimerTask{
 		public void run() {
 			observer.defPaint();
