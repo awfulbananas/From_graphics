@@ -76,14 +76,23 @@ public class Point {
 	}
 	
 	//returns a String representation of this Point
-	//in the format (x, y) for 2 dimensions, (x, y, z) for 3 dimensions, etc.
+	//in the format (x,y) for 2 dimensions, (x,y,z) for 3 dimensions, etc.
 	@Override
 	public String toString() {
 		String s = "(" + vals[0];
 		for(int i = 1; i < vals.length; i++) {
-			s += ", " + vals[i];
+			s += "," + vals[i];
 		}
 		return s + ")";
+	}
+	
+	//constructs a new Point from a string in the same format as returned by the toString() method
+	public static Point fromString(String data) {
+		data = data.substring(1, data.length() - 1);
+		String[] valStrings = data.split(",");
+		double[] vals = new double[valStrings.length];
+		for(int i = 0; i < valStrings.length; i++) vals[i] = Double.parseDouble(valStrings[i]);
+		return new Point(vals);
 	}
 	
 	//returns the distance from the origin of this Point, of it's length as a vector

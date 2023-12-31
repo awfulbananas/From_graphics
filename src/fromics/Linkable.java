@@ -15,6 +15,8 @@ import java.util.Set;
 public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//the angle of this Linkable relative to its parent
 	protected double ang;
+	//the relative scale of this Linkable compared to its parent
+	protected Point scale;
 	//the children of this Linkable, with locations relative to this one,
 	//which are drawn after the parent
 	protected List<Linkable> linked;
@@ -28,7 +30,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//only used if a child tries to unlink a Linkable while this one is updating
 	protected Queue<Linkable> unlinkQueue;
 	//a Set containing all of the keyboard key currently pressed
-	private Set<Integer> keysPressed;
+	protected Set<Integer> keysPressed;
 	//the default color for this Linkable to be drawn as
 	private Color color;
 	//whether this Linkable is fading in after being linked
@@ -39,6 +41,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	private double fadeTimer;
 	//the total amount of frames in a fade when fading in or out
 	private double initialFadeTime;
+	//whether or not this Linkable has ever been linked, used to only call onFirstLink once
+	protected boolean hasLinked;
 	
 	//constructs a new Linkable at (x, y) in 2d space
 	public Linkable(double x, double y) {
@@ -65,16 +69,34 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//initializes various values used by this Linkable
 	private void init() {
 		updating = false;
+		hasLinked = false;
 		parent = null;
 		linkQueue = new LinkedList<>();
 		unlinkQueue = new LinkedList<>();
 		linked = new LinkedList<>();
 		ang = 0;
+		scale = new Point(dims());
+		for(int i = 0; i < dims(); i++) scale.set(i, 1);
 		color = Color.WHITE;
+	}
+	
+	protected Mouse getMouse() {
+		return parent.getMouse();
 	}
 	
 	//called directly after this Linkable is linked to another Linkable
 	protected void onLink() {}
+	
+	private void onFirstLinks() {
+		onFirstLink();
+		for(Linkable l : linked) {
+			l.onFirstLinks();
+		}
+	}
+	
+	//called directly after the first time this Linkable is linked to another Linkable, unless the link chain doesn't reach
+	//a Background, in which case onFirstLink is delayed until then
+	protected void onFirstLink() {}
 	
 	//sets the angle of this Linkable
 	public void setAng(double ang) {
@@ -160,7 +182,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//returns the location of this Linkable in global space
-	public Point gatAbsLoc() {
+	public Point getAbsLoc() {
 		return new Point(getAbsX(), getAbsY());
 	}
 	
@@ -172,7 +194,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		if(parent == null) {
 			return X();
 		} else {
-			return (Math.cos(parent.ang) * X()) + (Math.sin(parent.ang) * Y()) + parent.getAbsX();
+			return ((Math.cos(parent.ang) * X()) + (Math.sin(parent.ang) * Y()))*getAbsScale().X() + parent.getAbsX();
 		}
 	}
 	
@@ -181,7 +203,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		if(parent == null) {
 			return Y();
 		} else {
-			return (Math.cos(parent.ang) * Y()) + (Math.sin(parent.ang) * X()) + parent.getAbsY();
+			return ((Math.cos(parent.ang) * Y()) + (Math.sin(parent.ang) * X()))*getAbsScale().X() + parent.getAbsY();
 		}
 	}
 	
@@ -191,6 +213,19 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			return ang;
 		} else {
 			return ang + parent.getAbsAng();
+		}
+	}
+	
+	public Point getScale() {
+		return scale.copy();
+	}
+	
+	public Point getAbsScale() {
+		if(parent == null) {
+			return scale.copy();
+		} else {
+			Point pScale = parent.getAbsScale();
+			return new Point(scale.X() * pScale.X(), scale.Y() * pScale.Y());
 		}
 	}
 	
@@ -211,6 +246,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			linked.add(child);
 			linked.sort(null);
 			child.onLink();
+			if(!child.hasLinked) {
+				if(this.hasLinked) {
+					child.onFirstLinks();
+					child.hasLinked = true;
+				}
+			}
 		}
 	}
 	

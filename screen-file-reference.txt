@@ -1,0 +1,21 @@
+import java.awt.Graphics;
+import fromics.Background;
+import fromics.Frindow;
+
+public class %CLASSNAME% extends Background {
+
+	public %CLASSNAME%(Frindow observer) {
+		//TODO: default constructor
+		super(observer);
+	}
+	
+	public boolean update() {
+		//TODO: default method, non-required
+	}
+	
+	public void draw(Graphics g, double xOff, double yOff, double angOff) {
+		//TODO: default method, non-required
+		g.drawString("Hello, World.", (int)(100 + X() + xOff), (int)(100 + Y() + yOff));
+	}
+
+}

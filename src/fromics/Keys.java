@@ -16,13 +16,14 @@ public class Keys extends KeyAdapter implements KeyListener{
 	public Set<Integer> codes;
 	//a queue of key codes for key released events in chronological order
 	//used to determine when a key has been typed and if a key is being held
-	Queue<Integer> typedCodeQueue;
+	Queue<KeyEvent> typedEventQueue;
 	//a List of all functions to be run whenever a key is typed
 	public List<KeypressFunction> keypressFunctions;
 	
+	//constructs a new Keys
 	public Keys() {
 		codes = new HashSet<>();
-		typedCodeQueue = new LinkedList<>();
+		typedEventQueue = new LinkedList<>();
 		keypressFunctions = new LinkedList<>();
 	}
 	
@@ -39,8 +40,8 @@ public class Keys extends KeyAdapter implements KeyListener{
 	
 	//processes all currently queued key typed codes, running relevant KeypressFunctions
 	public void process() {
-		while(!typedCodeQueue.isEmpty()) {
-			int e = typedCodeQueue.remove();
+		while(!typedEventQueue.isEmpty()) {
+			KeyEvent e = typedEventQueue.remove();
 			for(KeypressFunction c : keypressFunctions) {
 				c.accept(e);
 			}
@@ -49,8 +50,8 @@ public class Keys extends KeyAdapter implements KeyListener{
 	
 	//processes only the oldest keypress event, running relevant KeypressFunctions
 	public void processOne() {
-		if(!typedCodeQueue.isEmpty()) {
-			int e = typedCodeQueue.remove();
+		if(!typedEventQueue.isEmpty()) {
+			KeyEvent e = typedEventQueue.remove();
 			for(KeypressFunction c : keypressFunctions) {
 				c.accept(e);
 			}
@@ -69,10 +70,10 @@ public class Keys extends KeyAdapter implements KeyListener{
 	//adds a key to the queue of released key events whenever a key is released
 	@Override
 	public void keyReleased(KeyEvent e) {
-		super.keyPressed(e);
+		super.keyReleased(e);
 		if (codes.contains((Integer)e.getKeyCode())){
 			codes.remove((Integer)e.getKeyCode());
-			typedCodeQueue.add(e.getKeyCode());
+			typedEventQueue.add(e);
 		}
 	}
 }

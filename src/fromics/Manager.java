@@ -37,6 +37,7 @@ public abstract class Manager extends Background {
 			updated = true;
 			setX(0);
 			setY(0);
+			hasLinked = true;
 		}
 	
 	//returns the currently displayed screen of this Manager
@@ -120,7 +121,8 @@ public abstract class Manager extends Background {
 		drawRunner.start();
 	}
 	
-	//returns the amout of time that passed between the start of the previous frame and the start of this frame
+	@Override
+	//returns the amount of time that passed between the start of the previous frame and the start of this frame
 	public int dt() {
 		return (int) (dt / 1000l);
 	}

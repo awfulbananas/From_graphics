@@ -1,4 +1,4 @@
-package fromics;
+package tools;
 
 import java.awt.Font;
 import java.awt.Graphics;
@@ -7,6 +7,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 //a class which when run, displays a window with a sample of every default font option,
 //which is useful for picking fonts
+
+import fromics.Frindow;
+import fromics.Manager;
 
 //doesn't use normal fromics updating because it doesn't ever need to update,
 //but I should probably change that to make it more in line with my general code

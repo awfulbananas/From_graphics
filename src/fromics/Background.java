@@ -36,6 +36,10 @@ public class Background extends Linkable {
 		return false;
 	}
 	
+	public Mouse getMouse() {
+		return observer.getMouse();
+	}
+	
 	//returns whether the Frindow this background is displayed on uses a colour model with an alpha channel
 	protected boolean hasAlpha() {
 		int colorType = observer.getColorType();

@@ -1,0 +1,29 @@
+import java.awt.image.BufferedImage;
+
+import fromics.Background;
+import fromics.Frindow;
+import fromics.Manager;
+
+public class %CLASSNAME% extends Manager{
+	private Frindow win;
+
+	public static void main(String[] args) {
+		new %CLASSNAME%(new Frindow(BufferedImage.TYPE_BYTE_GRAY, 700, 700));
+	}
+	
+	public %CLASSNAME%(Frindow win) {
+		super(win, 10, 5);
+		this.win = win;
+		screens = new Background[1];
+		win.init(1, this);
+		initScreen(0);
+		startVariableLoop();
+	}
+
+	@Override
+	protected void initScreen(int n) {
+		//TODO: default first screen needs to be changed
+		screens[0] = new %FIRSTSCREENNAME%(win);
+	}
+
+}

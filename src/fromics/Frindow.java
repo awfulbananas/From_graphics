@@ -3,7 +3,6 @@ package fromics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
-import java.awt.MouseInfo;
 import java.awt.Panel;
 import java.awt.Rectangle;
 import java.awt.event.*;
@@ -23,6 +22,8 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	private Queue<BufferedImage> contentBuffer;
 	//the Keys object for managing KeyEvents
 	private Keys keys;
+	//the Mouse object for managing MouseEvents
+	private Mouse mouse;
 	//the color space to be used, TYPE_INT_RGP by default
 	private final int colorType;
 	//the target size for the frame buffer, if there's to few frames, the Frindow will draw more to correct,
@@ -64,6 +65,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//called regularly to keep up with keystroke events
 	public void update() {
 		keys.process();
+		mouse.processAll();
 	}
 	
 	//constructs a new Frindow in the given color space of size (width, height)
@@ -73,8 +75,10 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 		frame = new Frame(name);
 		frame.add(this);
 		keys = new Keys();
+		mouse = new Mouse(this);
 		this.colorType = colorType;
-		frame.addKeyListener(keys);
+		addKeyListener(keys);
+		addMouseListener(mouse);
 		setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		frame.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		setVisible(false);
@@ -153,9 +157,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	
 	//returns a Point representing the location of the mouse on the frame
 	public Point getMousePos() {
-		int mouseX = MouseInfo.getPointerInfo().getLocation().x - this.getLocationOnScreen().x;
-		int mouseY = MouseInfo.getPointerInfo().getLocation().y - this.getLocationOnScreen().y;
-		return new Point(mouseX, mouseY);
+		return locOnScreenFromGlobalLoc(mouse.getMouseLoc());
 	}
 	
 	//adds a function to be run whenever a keystroke is detected,
@@ -163,5 +165,9 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
 	//only alphanumeric and symbolic keys
 	public void addKeystrokeFunction(KeypressFunction func) {
 		keys.addKeypressFunction(func);
+	}
+
+	public Mouse getMouse() {
+		return mouse;
 	}
 }
