@@ -27,9 +27,14 @@ public class NumberField extends InputField<Integer> {
 		}
 	}
 	
+	public void setData(int n) {
+		data = n+"";
+	}
+	
 	@Override
 	protected void onFirstLink() {
 		addKeystrokeFunction((KeyEvent e) -> {
+			if(!selected) return;
 			if(data.length() < maxLength || maxLength == -1) {
 				char c = e.getKeyChar();
 				if(Character.isDigit(c)) {
@@ -48,7 +53,6 @@ public class NumberField extends InputField<Integer> {
 	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
 		g.setFont(font);
 		g.drawString(data, (int)(xOff + X()), (int)(yOff + Y()));
-		g.drawRect((int)(X() + xOff), (int)(Y() + yOff - 75), 230, 90);
 	}
 
 }

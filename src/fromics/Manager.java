@@ -54,9 +54,11 @@ public abstract class Manager extends Background {
 		boolean updateVal = update();
 		observer.update();
 		if(screens[screen].nextScreen()) {
+			int nextScreen = screens[screen].getNextScreen();
+			nextScreen = nextScreen==-1?(screen+1)%screens.length:nextScreen;
 			screens[screen].close();
-			initScreen((screen + 1) % screens.length);
-			screen = (screen + 1) % screens.length;
+			initScreen(nextScreen);
+			screen = nextScreen;
 		}
 		screens[screen].updateAll();
 		updated = true;

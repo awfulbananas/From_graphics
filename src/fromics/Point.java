@@ -216,6 +216,16 @@ public class Point {
 		return this;
 	}
 	
+	//restricts this Point to a maximum length, setting it to that length it it 
+    //it longer, then returns itself
+    public Point clampLength(double maxLength) {
+        if(this.sMag() > maxLength * maxLength) {
+            normalize();
+            mult(maxLength);
+        }
+        return this;
+    }
+	
 	//returns the dot product between this Point and Point p
 	//if one of the Points is normalized, this can be thought of as getting
 	//the other Point's distance along the axis along that Point

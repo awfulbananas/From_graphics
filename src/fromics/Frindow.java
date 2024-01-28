@@ -1,7 +1,7 @@
 package fromics;
 
-import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.Panel;
 import java.awt.Rectangle;
@@ -56,6 +56,7 @@ public static final Rectangle SCREEN_RECT = GraphicsEnvironment.getLocalGraphics
             System.exit(0);
         }  
 	}
+	
 	
 	//returns the current BufferedImage color model of this Frindow
 	public int getColorType() {

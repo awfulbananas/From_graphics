@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.font.FontRenderContext;
@@ -16,15 +17,16 @@ public class TextField extends InputField<String> {
 	private int cursorInd;
 	
 	public TextField() {
-		this(0, 0, -1);
+		this(0, 0, -1, DEF_FONT);
 	}
 	
 	public TextField(double x, double y) {
-		this(x, y, -1);
+		this(x, y, -1, DEF_FONT);
 	}
 	
-	public TextField(double x, double y, int maxLength) {
+	public TextField(double x, double y, int maxLength, Font f) {
 		super(x, y);
+		font = f;
 		this.maxLength = maxLength;
 		data = "";
 		cursorInd = 0;
@@ -44,10 +46,10 @@ public class TextField extends InputField<String> {
 	@Override
 	public void onFirstLink() {
 		addKeystrokeFunction((KeyEvent e) -> {
+			if(!selected) return;
 			int num = e.getKeyCode();
 			char c = e.getKeyChar();
-			System.out.println(c);
-			if(!(Character.isIdentifierIgnorable(c) || num == KeyEvent.VK_SHIFT || (num > 36 && num <= 40))) {
+			if(!(Character.isIdentifierIgnorable(c) || num == KeyEvent.VK_SHIFT || (num > 36 && num <= 40) || data.length() == maxLength)) {
 				if(cursorInd == 0) {
 					data = c + data;
 				} else if(cursorInd == data.length()){
@@ -95,16 +97,17 @@ public class TextField extends InputField<String> {
 		g.drawString(data, (int)(xOff + X()), (int)(yOff + Y()));
 		Rectangle2D dataBounds;
 		if(maxLength >= 0) {
-			dataBounds = font.getStringBounds("W".repeat(maxLength), fContext);
+			dataBounds = font.getStringBounds("e".repeat(maxLength), fContext);
 		} else {
 			dataBounds = font.getStringBounds(data, fContext);
 		}
 		double dataWidth = dataBounds.getWidth();
 		double dataHeight = dataBounds.getHeight();
-		g.drawRect((int)(X() + xOff), (int)(Y() + yOff - dataHeight), (int)dataWidth + 10, (int)dataHeight + 10);
+		g.drawRect((int)(X() + xOff), (int)(Y() + yOff - dataHeight + 10), (int)dataWidth + 10, (int)dataHeight);
 		g.setColor(Color.BLUE);
 		double cursorX = font.getStringBounds(data.substring(0, cursorInd), fContext).getWidth();
-		g.drawLine((int)(X() + xOff + cursorX), (int)(Y() + yOff - dataHeight + 10), (int)(X() + xOff + cursorX), (int)(Y() + yOff));
+		g.drawLine((int)(X() + xOff + cursorX), (int)(Y() + yOff - dataHeight + 15), (int)(X() + xOff + cursorX), (int)(Y() + yOff + 5));
+//		g.drawOval((int)(X() + xOff -4), (int)(Y() + yOff -4), 8, 8);
 	}
 
 }

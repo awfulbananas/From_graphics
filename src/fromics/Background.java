@@ -36,6 +36,13 @@ public class Background extends Linkable {
 		return false;
 	}
 	
+	//should return the index of the next screen to be loaded after nextScreen return true,
+	//or -1 to go to the screen with the next index
+	public int getNextScreen() {
+		return -1;
+	}
+	
+	//returns the Mouse object for the current Frindow
 	public Mouse getMouse() {
 		return observer.getMouse();
 	}

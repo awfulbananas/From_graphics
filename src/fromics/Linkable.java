@@ -89,6 +89,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	private void onFirstLinks() {
 		onFirstLink();
+		hasLinked = true;
 		for(Linkable l : linked) {
 			l.onFirstLinks();
 		}
@@ -246,11 +247,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			linked.add(child);
 			linked.sort(null);
 			child.onLink();
-			if(!child.hasLinked) {
-				if(this.hasLinked) {
-					child.onFirstLinks();
-					child.hasLinked = true;
-				}
+			if(!child.hasLinked && this.hasLinked) {
+				child.onFirstLinks();
 			}
 		}
 	}
