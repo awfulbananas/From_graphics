@@ -152,7 +152,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//optional method, if implemented, should run any update functionality, 
 	//and should return whether it should be unlinked from it's parent
-	public boolean update() {return false;}
+	public synchronized boolean update() {return false;}
 	
 	//adds a consumer to be called whenever a key is pressed which is passed
 	//a KeyEvent corresponding to the key press
