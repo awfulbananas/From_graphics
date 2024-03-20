@@ -169,7 +169,7 @@ public class Point {
 	//sets this point to a vector of length 1 going in the same direction
 	//then returns this point
 	public Point normalize() {
-		div(mag());
+		if(sMag() != 0) div(mag());
 		return this;
 	}
 	
