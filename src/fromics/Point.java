@@ -330,9 +330,11 @@ public class Point {
 	//rotates this Point rot degrees around the origin clockwise,
 	//then returns this Point
 	public Point rot(double rot) {
-		Point newXLoc = new Point(Math.cos(rot), -Math.sin(rot));
-		Point newYLoc = newXLoc.getPerpendicular();
-		return matrixTransform(newXLoc, newYLoc);
+		double oldX = X();
+		double oldY = Y();
+		setX(Math.cos(rot) * oldX + Math.sin(rot) * oldY);
+		setY(Math.cos(rot) * oldY - Math.sin(rot) * oldX);
+		return this;
 	}
 	
 	//clamps the value of a Point between the limits given by minimum and maximum Points such that 
