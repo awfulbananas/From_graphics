@@ -127,8 +127,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
 			Linkable next = lItr.next();
-			if(next.update()) lItr.remove();
-			next.updateAll();
+			if(next.updateAll()) lItr.remove();
 		}
 		boolean updateVal = update();
 		if(fadingIn || fadingOut) {
@@ -195,7 +194,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		if(parent == null) {
 			return X();
 		} else {
-			return ((Math.cos(parent.ang) * X()) + (Math.sin(parent.ang) * Y()))*getAbsScale().X() + parent.getAbsX();
+			return ((Math.cos(parent.ang) * X()) - (Math.sin(parent.ang) * Y()))*getAbsScale().X() + parent.getAbsX();
 		}
 	}
 	
@@ -204,7 +203,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		if(parent == null) {
 			return Y();
 		} else {
-			return ((Math.cos(parent.ang) * Y()) + (Math.sin(parent.ang) * X()))*getAbsScale().X() + parent.getAbsY();
+			return ((Math.cos(parent.ang) * Y()) - (Math.sin(parent.ang) * X()))*getAbsScale().X() + parent.getAbsY();
 		}
 	}
 	
@@ -300,7 +299,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//returns the angle of this Linkable relative to it's parent
-	public double getRot() {return ang;}
+	public double getAng() {return ang;}
 	
 	//returns a list of all children of this Linkable
 	public List<Linkable> getLinked() {return linked;}
@@ -349,12 +348,13 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			e.printStackTrace();
 			return;
 		}
+
 		try {
-			for(Object l : linked) {
-				((Linkable)l).drawAll(g);
+			for(Linkable l : linked) {
+				l.drawAll(g);
 			}
 		} catch(ConcurrentModificationException e) {
-			
+			e.printStackTrace();
 		}
 	}
 	
@@ -404,13 +404,35 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
 	}
+
+	protected static void simpleDrawPoints(Graphics g, Point[] pts) {
+		simpleDrawPoints(g, pts, true);
+	}
+
+	protected static void simpleDrawPoints(Graphics g, Point[] pts, boolean closed) {
+		int[] xLocs = new int[pts.length];
+		int[] yLocs = new int[pts.length];
+
+		for(int i = 0; i < pts.length; i++) {
+			xLocs[i] = (int)pts[i].X();
+			yLocs[i] = (int)pts[i].Y();
+		}
+
+		if(closed) {
+			g.drawPolygon(xLocs, yLocs, xLocs.length);
+		} else {
+			for(int i = 0; i < xLocs.length - 1; i++) {
+				g.drawLine(xLocs[i], yLocs[i], xLocs[i + 1], yLocs[i + 1]);
+			}
+		}
+	}
 	
 	//draws a polygon from the Points points, with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
 	//closed determines whether the the first and last Points should be connected
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		Point[] newPoints = new Point[points.length];
-		Point newXLoc = (new Point(-1, 0)).rot(totalAng);
+		Point newXLoc = (new Point(-1, 0)).rot(totalAng).mult(size);
 		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
 			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
