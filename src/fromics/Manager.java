@@ -122,6 +122,28 @@ public abstract class Manager extends Background {
 		updateRunner.start();
 		drawRunner.start();
 	}
+
+	public void startSynchronizedLoop() {
+		Thread runner = new Thread(() -> {
+			boolean running = true;
+			RunUpdate update = this.new RunUpdate();
+			RunDraw draw = this.new RunDraw();
+			long prevTime = System.nanoTime();
+			while(running) {
+				update.run();
+				draw.run();
+				long newTime = System.nanoTime();
+				long elapsedTime = newTime - prevTime;
+				while(elapsedTime < (drawDelay + updateDelay) * 1000000) {
+					newTime = System.nanoTime();
+					elapsedTime = newTime - prevTime;
+				}
+				dt = elapsedTime;
+				prevTime = newTime;
+			}
+		});
+		runner.start();
+	}
 	
 	@Override
 	//returns the amount of time that passed between the start of the previous frame and the start of this frame
