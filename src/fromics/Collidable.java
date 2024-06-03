@@ -34,4 +34,7 @@ public abstract class Collidable extends Linkable {
 	
 	//returns whether this Collidable is colliding with Collidable other
 	public abstract boolean check(Collidable other);
+
+	//returns the location which is colliding with the given Collidable, the specific
+//	public abstract Point getColLoc(Collidable other);
 }

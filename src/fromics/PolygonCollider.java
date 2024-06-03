@@ -22,6 +22,16 @@ public abstract class PolygonCollider extends Collidable {
 		for(int i = 0; i < xVals.length; i++) {
 			shape[i] = new Point(xVals[i] * size, yVals[i] * size);
 		}
+		calcBounds();
+	}
+
+	protected void init(Point[] locs, double size) {
+		this.size = size;
+		shape = new Point[locs.length];
+		for(int i = 0; i < locs.length; i++) shape[i] = locs[i].copy().mult(size);
+	}
+
+	private void calcBounds() {
 		maxBounds = shape[0].copy();
 		minBounds = shape[0].copy();
 		for(int i = 0; i < shape.length; i++) {
@@ -96,7 +106,7 @@ public abstract class PolygonCollider extends Collidable {
 	//which is Collidable.TYPE_POLYGON
 	@Override
 	public int getCollisionType() {
-		return 5;
+		return Collidable.TYPE_POLYGON;
 	}
 	
 	//returns whether this Collidable is colliding with Collidable other
@@ -113,16 +123,50 @@ public abstract class PolygonCollider extends Collidable {
 					if(((PolygonCollider)other).shapeContains(p.copy().sub(other))) return true;
 				}
 				return false;
+			case Collidable.TYPE_OVAL:
+				double rad = ((CircleCollider)other).getRadius();
+				Point relLoc = other.copy().sub(this);
+				//for each consecutive pair of points in the collision box, compare the line they make
+				//with the line the circle collider makes with the center of the shape
+				for(int i = 0; i < shape.length; i++) {
+					Point curr = shape[i];
+					Point relPoint = relLoc.copy().add(curr);
+					//is the point inside the circle
+					if(relPoint.sMag() < rad * rad) return true;
+					Point next = shape[(i + 1) % shape.length];
+					Point relNext = relLoc.copy().add(next);
+					double pointSlope = (curr.Y() - next.Y()) / (curr.X() - next.X());
+					//this gets the x and y values of the closest point of the line to the center of the circle, relative to the circle
+					//source:just trust the algebra
+					double xIntersection = (relPoint.Y()*pointSlope - relPoint.X()*pointSlope*pointSlope)/(-1.0-pointSlope*pointSlope);
+					double yIntersection = -xIntersection / pointSlope;
+					double minX;
+					double maxX;
+
+					if(relPoint.X() < relNext.X()) {
+						minX = relPoint.X();
+						maxX = relNext.X();
+					} else {
+						minX = relNext.X();
+						maxX = relPoint.X();
+					}
+					//if the place where the lines intersect isn't between the points, they're not colliding
+					double distSqrd = Math.pow(xIntersection, 2) + Math.pow(yIntersection, 2);
+					if(xIntersection >= minX && xIntersection <= maxX && distSqrd > rad * rad) return true;
+				}
+				return false;
 			default:
 				return false;
 		}
 	}
+
+
 	
 	//returns the Points of this PolygonCollider in world space
 	public Point[] absPoints() {
 		Point[] absPoints = new Point[shape.length];
 		for(int i = 0; i < shape.length; i++) {
-			absPoints[i] = shape[i].copy().rot(ang).add(X(), Y());
+			absPoints[i] = shape[i].copy().rot(ang).add(this);
 		}
 		return absPoints;
 	}

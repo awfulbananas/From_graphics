@@ -21,14 +21,11 @@ public abstract class PointCollider extends Collidable {
 	@Override
 	public boolean check(Collidable other) {
 		switch(other.getCollisionType()) {
-			case Collidable.TYPE_OVAL:
-				double s = ((OvalCollider)other).getRadius();
-				return other.copy().sub(this).sMag() < s * s;
+			case Collidable.TYPE_OVAL, Collidable.TYPE_POLYGON:
+				return other.check(this);
 			case Collidable.TYPE_POINT:
 				return copy().sub(other).sMag() == 0;
-			case Collidable.TYPE_POLYGON:
-				return other.check(this);
-			default:
+            default:
 				return false;
 		}
 	}

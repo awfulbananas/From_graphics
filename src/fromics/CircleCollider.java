@@ -3,12 +3,12 @@ package fromics;
 import java.awt.Graphics;
 
 //a class representing a collider with a circular shape
-public class OvalCollider extends Collidable {
+public class CircleCollider extends Collidable {
 	//the radius of collision
 	private double radius;
 
 	//creates a new CircleCollider
-	public OvalCollider(double x, double y, double radius) {
+	public CircleCollider(double x, double y, double radius) {
 		super(x, y);
 		this.radius = radius;
 	}
@@ -25,9 +25,11 @@ public class OvalCollider extends Collidable {
 	public boolean check(Collidable other) {
 		switch(other.getCollisionType()) {
 			case Collidable.TYPE_OVAL:
-				return other.copy().sub(this).mag() < radius + ((OvalCollider)other).getRadius();
+				return other.copy().sub(this).mag() < radius + ((CircleCollider)other).getRadius();
 			case Collidable.TYPE_POINT:
 				return other.copy().sub(this).mag() < radius;
+			case Collidable.TYPE_POLYGON:
+				return other.check(this);
 			default:
 				return false;
 		}
