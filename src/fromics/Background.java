@@ -19,12 +19,12 @@ public class Background extends Linkable {
 	
 	//draws this Backgound and all of it's children
 	//relative to this background
-	public void drawAll(Graphics g) {
+	public void drawAll(Graphics g, BufferedImage img) {
 		setDefColor(g);
-		draw(g, 0, 0, 0);
+		draw(g, img, 0, 0, 0);
 		try {
 			for(int i = 0; i < linked.size(); i++) {
-				linked.get(i).drawAll(g);
+				linked.get(i).drawAll(g, img);
 			}
 		} catch(NullPointerException e) {
 			System.out.println("Wierd concurrent modification exception thing, fix this");
@@ -88,5 +88,5 @@ public class Background extends Linkable {
 
 	//override this if you want the background to draw something
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {}
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {}
 }

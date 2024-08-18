@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -340,10 +341,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//draws this Linkable, and all its children relative to it's parent
-	public void drawAll(Graphics g) {
+	public void drawAll(Graphics g, BufferedImage img) {
 		setDefColor(g);
 		try {
-			draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
+			draw(g, img, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
 		} catch(NullPointerException e) {
 			e.printStackTrace();
 			return;
@@ -351,7 +352,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 
 		try {
 			for(Linkable l : linked) {
-				l.drawAll(g);
+				l.drawAll(g, img);
 			}
 		} catch(ConcurrentModificationException e) {
 			e.printStackTrace();
@@ -370,7 +371,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//the function which draws this Linkable, given a total x location, y location and angle
-	protected abstract void draw(Graphics g, double xOff, double yOff, double angOff);
+	protected abstract void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff);
 	
 	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
 	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g

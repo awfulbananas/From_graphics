@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 
 //a class representing a collider with a circular shape
 public class CircleCollider extends Collidable {
@@ -43,7 +44,7 @@ public class CircleCollider extends Collidable {
 	
 	//draws an oval representing this OvalCollider
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		g.drawOval((int)(X() + xOff), (int)(Y() + yOff), (int)(2 * radius), (int)(2 * radius));
 	}
 

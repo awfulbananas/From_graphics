@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
 public class TextField extends InputField<String> {
 	public static final double HOLD_TIME_BEFORE_SPAM = 1;
@@ -92,7 +93,7 @@ public class TextField extends InputField<String> {
 	}
 
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		g.setFont(font);
 		g.drawString(data, (int)(xOff + X()), (int)(yOff + Y()));
 		Rectangle2D dataBounds;

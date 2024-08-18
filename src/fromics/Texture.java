@@ -40,13 +40,13 @@ public class Texture extends Linkable{
 	
 	//draws this texture using Graphics g, and the given x, y, and angle offsets
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		double totAng = (angOff + ang);
 		//if there's no rotation, don't do the rotation algorithm
 		if(totAng == 0) {
-			drawImg(g, img, xOff, yOff);
+			drawImg(g, this.img, xOff, yOff);
 		}
-		BufferedImage rotated = getRotatedImage(img, totAng);
+		BufferedImage rotated = getRotatedImage(this.img, totAng);
 		//draw the rotated image
 		drawImg(g, rotated, xOff, yOff);
 	}

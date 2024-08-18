@@ -2,6 +2,7 @@ package fromics;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 //a class representing a field for inputing a number from the keyboard
 public class NumberField extends InputField<Integer> {
@@ -50,7 +51,7 @@ public class NumberField extends InputField<Integer> {
 	}
 
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		g.setFont(font);
 		g.drawString(data, (int)(xOff + X()), (int)(yOff + Y()));
 	}

@@ -42,9 +42,7 @@ public class Keys extends KeyAdapter implements KeyListener{
 	public void process() {
 		while(!typedEventQueue.isEmpty()) {
 			KeyEvent e = typedEventQueue.remove();
-			for(KeypressFunction c : keypressFunctions) {
-				c.accept(e);
-			}
+			process(e);
 		}
 	}
 	
@@ -52,9 +50,13 @@ public class Keys extends KeyAdapter implements KeyListener{
 	public void processOne() {
 		if(!typedEventQueue.isEmpty()) {
 			KeyEvent e = typedEventQueue.remove();
-			for(KeypressFunction c : keypressFunctions) {
-				c.accept(e);
-			}
+			process(e);
+		}
+	}
+
+	private void process(KeyEvent e) {
+		for(int i = 0; i < keypressFunctions.size(); i++) {
+			keypressFunctions.get(i).accept(e);
 		}
 	}
 	

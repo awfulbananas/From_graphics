@@ -3,6 +3,7 @@ package tools;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+import java.awt.image.BufferedImage;
 import java.util.Timer;
 import java.util.TimerTask;
 //a class which when run, displays a window with a sample of every default font option,
@@ -42,13 +43,13 @@ public class FontPallete extends Manager {
 	
 	//called by the Frindow to draw this FontPallete to the screen
 	@Override
-	public void drawAll(Graphics g) {
-		draw(g, 0, 0, 0);
+	public void drawAll(Graphics g, BufferedImage img) {
+		draw(g, img, 0, 0, 0);
 	}
 	
 	//draws this FontPallete with the given offsets and Graphics
 	@Override
-	public void draw(Graphics g, double xOff, double yOff, double angOff) {
+	public void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		for (int i = 0; i < allFonts.length; i++) {
 			g.setFont(new Font(allFonts[i], Font.PLAIN, 20));
 			g.drawString(allFonts[i].substring(0, Math.min(allFonts[i].length(), 15)), 20  + 185 * ((i * 20 + 20) / (observer.getHeight() - 20)), (i * 20 + 20) % (observer.getHeight() - 20));

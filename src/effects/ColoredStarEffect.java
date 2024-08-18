@@ -1,6 +1,7 @@
 package effects;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -59,7 +60,7 @@ public class ColoredStarEffect extends Linkable {
 	}
 	
 	@Override
-	protected void draw(Graphics g, double x, double y, double ang) { 
+	protected void draw(Graphics g, BufferedImage img, double x, double y, double ang) {
 		if(starTimer < 0) {
 			stars.add(new Star(r.nextInt((int)bounds.X()), r.nextInt((int)bounds.Y()), starLifetime));
 			starTimer = starAddTime;
@@ -70,7 +71,7 @@ public class ColoredStarEffect extends Linkable {
 			Star next = stars.get(i);	
 			float mag = Math.min(1f, Math.min((float)next.timer / (float)starFadeTime, (float)(starLifetime - next.timer) / (float)starFadeTime));
 			Color c = next.c;
-			g.setColor(new Color(((float)c.getRed() / 255) * mag, ((float)c.getGreen() / 255) * mag, ((float)c.getBlue() / 255) * mag));
+			g.setColor(new Color(Math.min(((float)c.getRed() / 255f) * mag, 1f), Math.min(((float)c.getGreen() / 255f) * mag, 1f), Math.min(((float)c.getBlue() / 255f) * mag, 1f)));
 			g.drawRect((int)next.X(), (int)next.Y(), starSize, starSize);		
 		}
 	}

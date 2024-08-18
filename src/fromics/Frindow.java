@@ -169,29 +169,14 @@ public class Frindow extends Panel {
 	}
 
 	/**
-	 * creates a new frame, adds it to the frame buffer, then uses the drawAll method
-	 * from the Manger game to draw on that frame
-	 * @param g doesn't actually matter, and I'm realizing I should have cleaned up this class a while ago
-	 */
-	@Override
-	public void paint(Graphics g) {
-		game.drawAll(getNewFrame());
-		while(contentBuffer.size() < targetFrameBufferSize) {
-			game.drawAll(getNewFrame());
-		}
-		g.drawImage(contentBuffer.remove(), 0, 0, this);
-		painting = false;
-	}
-
-	/**
 	 * creates a new frame and adds it to the frame buffer, returning the graphics object for
 	 * that frame
 	 * @return the graphics object for the new frame
 	 */
-	private Graphics getNewFrame() {
+	private GraphicsCombo getNewFrame() {
 		BufferedImage next = new BufferedImage(getWidth(), getHeight(), colorType);
 		contentBuffer.add(next);
-		return next.getGraphics();
+		return new GraphicsCombo(next);
 	}
 
 	/**

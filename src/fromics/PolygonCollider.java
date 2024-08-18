@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 
 //a class representing a Collidable with polygon collision
 public abstract class PolygonCollider extends Collidable {
@@ -173,7 +174,7 @@ public abstract class PolygonCollider extends Collidable {
 	
 	//draw this PolygonCollider, draw the collision polygon by default
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		drawCollider(g, xOff, yOff, angOff);
 	}
 	

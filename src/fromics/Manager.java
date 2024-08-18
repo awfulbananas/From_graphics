@@ -1,6 +1,7 @@
 package fromics;
 
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -66,10 +67,10 @@ public abstract class Manager extends Background {
 	}
 	
 	//draws the current Screen of this Manager and all of it's children
-	public void drawAll(Graphics g) {
-		draw(g, 0, 0, 0);
+	public void drawAll(Graphics g, BufferedImage img) {
+		draw(g, img, 0, 0, 0);
 		if(screens[screen] == null) return;
-		screens[screen].drawAll(g);
+		screens[screen].drawAll(g, img);
 	}
 	
 	//this method should initialize screen n in screens

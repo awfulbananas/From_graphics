@@ -32,6 +32,11 @@ public class TextureCache {
         cache = null;
     }
 
+    public static boolean hasTexture(String name) {
+        if(cache == null) return false;
+        return cache.containsKey(name);
+    }
+
     public static BufferedImage get(String name) {
         if(cache != null) {
             return cache.get(name);

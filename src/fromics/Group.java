@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 
 	//draws this Linkable, draws nothing by default
 	@Override
-	protected void draw(Graphics g, double x, double y, double ang) {}
+	protected void draw(Graphics g, BufferedImage img, double x, double y, double ang) {}
 
 	//links a Linkable to this one, so that it follows it
 	public void linkE(E child) {
@@ -116,10 +117,14 @@ public class Group<E extends Linkable> extends Linkable implements Iterable<E>{
 	//doesn't draw this Group by default, so if it should be drawn,
 	//the override this method in addition to .draw()
 	@Override
-	public void drawAll(Graphics g) {
-		Object[] currentLinked = linked.toArray();
-		for(Object l : currentLinked) {
-			((Linkable)l).drawAll(g);
+	public void drawAll(Graphics g, BufferedImage img) {
+		setDefColor(g);
+		try {
+			for(int i = 0; i < linked.size(); i++) {
+				linked.get(i).drawAll(g, img);
+			}
+		} catch(NullPointerException e) {
+			System.out.println("Wierd concurrent modification exception thing, fix this");
 		}
 	}
 	

@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -38,18 +39,18 @@ public class Hidden extends Linkable {
 	}
 	
 	//draws all of the Linkables which should currently be shown by this Hidden
-	public void drawAll(Graphics g) {
+	public void drawAll(Graphics g, BufferedImage img) {
 		setDefColor(g);
-		draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
+		draw(g, img, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
 		for(Linkable l : linked) {
 			if(shown.contains(l)) {
-				l.drawAll(g);
+				l.drawAll(g, img);
 			}
 		}
 	}
 
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		
 	}
 

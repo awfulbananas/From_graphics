@@ -2,6 +2,7 @@ package files;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -336,7 +337,7 @@ public class SplinePath extends Linkable {
 	
 	//draws this SplinePath using the given Graphics and x and y offsets
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		final double diff = 1.0 / DRAW_DETAIL;
 		int index = 1;
 		BezierSpline first = splines[0];

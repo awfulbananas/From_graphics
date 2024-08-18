@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 
 //a class representing a field for the input of some value through typing
 public abstract class InputField<E> extends Linkable {
@@ -37,6 +38,6 @@ public abstract class InputField<E> extends Linkable {
 
 	//draws this InputField to the screen, usually displaying the currently inputed data in some way
 	@Override
-	protected abstract void draw(Graphics g, double xOff, double yOff, double angOff);
+	protected abstract void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff);
 
 }
