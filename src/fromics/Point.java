@@ -107,6 +107,20 @@ public class Point {
 	}
 
 	/**
+	 * sets the values of the dimensions shared between this Point
+	 * and Point p to the values of Point p, then returns this Point
+	 * @param p the Point to clone
+	 * @return this Point
+	 */
+	public Point clone(Point p) {
+		int length = Math.min(dims(), p.dims());
+		for(int i = 0; i < length; i++) {
+			this.vals[i] = p.vals[i];
+		}
+		return this;
+	}
+
+	/**
 	 * adds a new dimension to this Point, and initializes that new dimension to 0.
 	 * for example, calling addDim() on (2, 3) would make it (2, 3, 0),
 	 * and calling addDim() on (5, 7, 4) would make it (5, 7, 4, 0)
