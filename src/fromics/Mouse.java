@@ -5,28 +5,24 @@ import java.awt.MouseInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.awt.event.MouseWheelEvent;
+import java.util.*;
 
 public class Mouse extends MouseAdapter implements MouseListener {
-	private Frindow win;
-	Queue<MouseEvent> clickEvents;
-	List<MouseClickFunction> clickFunctions;
-	private boolean[] buttonStates;
+	public int DRAG_CODE_OFFSET = 10;
+
+	private final Frindow win;
+	private final Queue<MouseEvent> mouseEventQueue;
+	private final List<MouseEventFunction> mouseEventFunctions;
+	private final Set<Integer> codes;
 	private boolean mouseInWindow;
 	
 	public Mouse(Frindow win) {
 		this.win = win;
-		buttonStates = new boolean[MouseInfo.getNumberOfButtons() + 1];
 		mouseInWindow = true;
-		clickEvents = new LinkedList<>();
-		clickFunctions = new ArrayList<>();
-	}
-	
-	public boolean getMouseButton(int button) {
-		return buttonStates[button + 1];
+		mouseEventQueue = new LinkedList<>();
+		mouseEventFunctions = new ArrayList<>();
+		codes = new HashSet<>();
 	}
 	
 	public Point getMouseLoc() {
@@ -41,49 +37,66 @@ public class Mouse extends MouseAdapter implements MouseListener {
 		return mouseInWindow;
 	}
 	
-	public void addMouseClickFunction(MouseClickFunction func) {
-		clickFunctions.add(func);
+	public void addMouseEventFunction(MouseEventFunction func) {
+		if(!mouseEventFunctions.contains(func)) {
+			mouseEventFunctions.add(func);
+		}
 	}
-	
-	public void processOne() {
-		MouseEvent e = clickEvents.remove();
-		for(int i = 0; i < clickFunctions.size(); i++) {
-			clickFunctions.get(i).accept(e);
+
+	private void process(MouseEvent e) {
+		for(int i = 0; i < mouseEventFunctions.size(); i++) {
+			mouseEventFunctions.get(i).accept(e);
 		}
 	}
 	
-	public void processAll() {
-		while(!clickEvents.isEmpty()) {
-			MouseEvent e = clickEvents.remove();
-			for(int i = 0; i < clickFunctions.size(); i++) {
-				clickFunctions.get(i).accept(e);
-			}
+	public void processOne() {
+		if(!mouseEventQueue.isEmpty()) {
+			MouseEvent e = mouseEventQueue.remove();
+			process(e);
+		}
+	}
+	
+	public void process() {
+		while(!mouseEventQueue.isEmpty()) {
+			MouseEvent e = mouseEventQueue.remove();
+			process(e);
 		}
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		clickEvents.add(e);
+		super.mouseClicked(e);
+		mouseEventQueue.add(e);
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		buttonStates[e.getButton()] = true;
+		super.mousePressed(e);
+		codes.add(e.getButton());
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		buttonStates[e.getButton()] = false;
+		super.mouseReleased(e);
+		codes.remove(e.getButton());
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
+		super.mouseEntered(e);
 		mouseInWindow = true;
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
+		super.mouseExited(e);
 		mouseInWindow = false;
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		super.mouseWheelMoved(e);
+		mouseEventQueue.add(e);
 	}
 
 }

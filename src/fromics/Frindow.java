@@ -86,7 +86,7 @@ public class Frindow extends Panel {
 	 */
 	public void update() {
 		keys.process();
-		mouse.processAll();
+		mouse.process();
 	}
 
 	/**
@@ -186,17 +186,6 @@ public class Frindow extends Panel {
 	}
 
 	/**
-	 * creates a new frame and adds it to the frame buffer, returning the graphics object for
-	 * that frame
-	 * @return the graphics object for the new frame
-	 */
-	private GraphicsCombo getNewFrame() {
-		BufferedImage next = new BufferedImage(getWidth(), getHeight(), colorType);
-		contentBuffer.add(next);
-		return new GraphicsCombo(next);
-	}
-
-	/**
 	 * creates a new BufferedImage and adds it to the frame buffer, returning that BufferedImage
 	 * @return the new BufferedImage to be added to the frame buffer
 	 */
@@ -230,7 +219,7 @@ public class Frindow extends Panel {
 	 * @return the position of the mouse pointer relative to the upper left corner of the window
 	 */
 	public Point getMousePos() {
-		return locOnScreenFromGlobalLoc(mouse.getMouseLoc());
+		return mouse.getMouseLoc();
 	}
 
 	/**
@@ -240,6 +229,15 @@ public class Frindow extends Panel {
 	 */
 	public void addKeystrokeFunction(KeypressFunction func) {
 		keys.addKeypressFunction(func);
+	}
+
+	/**
+	 * registers a mouse event function to be run whenever a mouse button from one to three is pressed and released,
+	 * or the mouse wheel is scrolled, giving the function the corresponding MouseEvent as it's argument
+	 * @param func the MouseEventFunction which will be run when the mouse is clicked or mouse wheel scrolled
+	 */
+	public void addMouseEventFunction(MouseEventFunction func) {
+		mouse.addMouseEventFunction(func);
 	}
 
 	/**

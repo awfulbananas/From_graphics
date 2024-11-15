@@ -1,6 +1,7 @@
 package fromics;
 
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 //represents the background of something, if you want to have multiple different screens,
@@ -17,17 +18,17 @@ public class Background extends Linkable {
 		setKeysSet(observer.getKeys().codes);
 	}
 	
-	//draws this Backgound and all of it's children
+	//draws this Background and all of its children
 	//relative to this background
 	public void drawAll(Graphics g, BufferedImage img) {
 		setDefColor(g);
 		draw(g, img, 0, 0, 0);
-		try {
-			for(int i = 0; i < linked.size(); i++) {
+		for(int i = 0; i < linked.size(); i++) {
+			try {
 				linked.get(i).drawAll(g, img);
+			} catch(NullPointerException e) {
+				continue;
 			}
-		} catch(NullPointerException e) {
-			System.out.println("Wierd concurrent modification exception thing, fix this");
 		}
 	}
 	
@@ -84,6 +85,11 @@ public class Background extends Linkable {
 	@Override
 	protected void addKeystrokeFunction(KeypressFunction func) {
 		observer.addKeystrokeFunction(func);
+	}
+
+	@Override
+	public void addMouseEventFunction(MouseEventFunction func) {
+		observer.addMouseEventFunction(func);
 	}
 
 	//override this if you want the background to draw something

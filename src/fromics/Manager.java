@@ -34,7 +34,7 @@ public abstract class Manager extends Background {
 			super(observer);
 			updateDelay = updateDelayMillis;
 			drawDelay = drawDelayMillis;
-			dt = updateDelayMillis * 1000000;
+			dt = updateDelayMillis * 1000000L;
 			updated = true;
 			setX(0);
 			setY(0);

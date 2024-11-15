@@ -1,9 +1,11 @@
 package fromics;
 
-//a class representing a Linkable which has some kind of collision
+/**
+ * Collidable is an abstract class representing an object with position and the ability to detect collision with other Collidables
+ */
 public abstract class Collidable extends Linkable {
 	//collision types:
-	
+
 	//collision is something else, must be the one to implement collision
 	//there aren't any built-in classes for this type
 	public static final int TYPE_OTHER = 0;
@@ -22,14 +24,20 @@ public abstract class Collidable extends Linkable {
 	
 	//collision is based on a polygon represened by a list of Points
 	public static final int TYPE_POLYGON = 5;
-	
-	//creates a new Collidable at (x, y)
+
+	/**
+	 * constructs a new Collidable at the given position
+	 * @param x the initial x position of this Collidable
+	 * @param y the initial y position of this Collidable
+	 */
 	public Collidable(double x, double y) {
 		super(x, y);
 	}
-	
-	//returns the type of collision of this Collidable
-	//which are defined at the top of this class
+
+	/**
+	 *
+	 * @return
+	 */
 	public abstract int getCollisionType();
 	
 	//returns whether this Collidable is colliding with Collidable other

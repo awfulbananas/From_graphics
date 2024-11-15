@@ -23,7 +23,7 @@ import java.util.function.Function;
  * @author Joseph Fromel
  */
 public class Point {
-	/*
+	/**
 	 *the array of values for the location of the Point,
 	 *from lowest dimension to highest,
 	 *ie. x-value is vals[0], y-value is vals[1], etc.
@@ -106,6 +106,7 @@ public class Point {
 		return newP;
 	}
 
+	//TODO:this name might be confused with Object.clone(), so it might be good to change it
 	/**
 	 * sets the values of the dimensions shared between this Point
 	 * and Point p to the values of Point p, then returns this Point

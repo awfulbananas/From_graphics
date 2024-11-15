@@ -2,6 +2,7 @@ package fromics;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -159,6 +160,14 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	//a KeyEvent corresponding to the key press
 	protected void addKeystrokeFunction(KeypressFunction func) {
 		parent.addKeystrokeFunction(func);
+	}
+
+	public void addMouseEventFunction(MouseEventFunction func) {
+		parent.addMouseEventFunction(func);
+	}
+
+	public Point getMousePos(MouseEvent e) {
+		return new Point(e.getX(), e.getY());
 	}
 	
 	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
@@ -346,7 +355,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		try {
 			draw(g, img, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
 		} catch(NullPointerException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			return;
 		}
 
