@@ -32,6 +32,10 @@ public class Mouse extends MouseAdapter implements MouseListener {
 			return new Point();
 		}
 	}
+
+	public boolean getMouseButton(int i) {
+		return codes.contains(i);
+	}
 	
 	public boolean getMousePresent() {
 		return mouseInWindow;
@@ -73,30 +77,40 @@ public class Mouse extends MouseAdapter implements MouseListener {
 	public void mousePressed(MouseEvent e) {
 		super.mousePressed(e);
 		codes.add(e.getButton());
+		mouseEventQueue.add(e);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		super.mouseReleased(e);
 		codes.remove(e.getButton());
+		mouseEventQueue.add(e);
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		super.mouseEntered(e);
 		mouseInWindow = true;
+		mouseEventQueue.add(e);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		super.mouseExited(e);
 		mouseInWindow = false;
+		mouseEventQueue.add(e);
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		super.mouseWheelMoved(e);
 		mouseEventQueue.add(e);
+		mouseEventQueue.add(e);
+	}
+
+	public static boolean buttonDownInEvent(MouseEvent e, int button) {
+		int mask = MouseEvent.getMaskForButton(button);
+		return (mask & e.getModifiersEx()) == mask;
 	}
 
 }

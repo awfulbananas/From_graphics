@@ -30,6 +30,7 @@ public class Background extends Linkable {
 				continue;
 			}
 		}
+		drawUI(g, img);
 	}
 	
 	//should return true when the next screen should be shown
@@ -95,4 +96,7 @@ public class Background extends Linkable {
 	//override this if you want the background to draw something
 	@Override
 	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {}
+
+	//override this to draw things over everything else (unlike under it with the draw() method
+	protected void drawUI(Graphics g, BufferedImage img) {}
 }
