@@ -1,5 +1,6 @@
 package fromics;
 
+import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.DoubleFunction;
@@ -70,14 +71,25 @@ public class Point {
 	 * the array should be non-null, and it's length should be >= 2,
 	 * or an IllegalArgumentException will be thrown.
 	 * modifying the Point will also modify the array, so be careful with
-	 * this constructor TODO: make this not modify the given array
+	 * this constructor
 	 * @param vals the array which the Point's dimensions are initialized to
 	 */
 	public Point(double[] vals) {
 		if(vals.length < 2) {
 			throw new IllegalArgumentException("dimension counts less than 2 not supported");
 		}
-		this.vals = vals;
+		this.vals = Arrays.copyOf(vals, vals.length);
+	}
+
+	public Point(double[] vals, boolean referenceArr) {
+		if(vals.length < 2) {
+			throw new IllegalArgumentException("dimension counts less than 2 not supported");
+		}
+		if(referenceArr) {
+			this.vals = vals;
+		} else {
+			this.vals = Arrays.copyOf(vals, vals.length);
+		}
 	}
 
 	/**
@@ -106,14 +118,13 @@ public class Point {
 		return newP;
 	}
 
-	//TODO:this name might be confused with Object.clone(), so it might be good to change it
 	/**
 	 * sets the values of the dimensions shared between this Point
 	 * and Point p to the values of Point p, then returns this Point
 	 * @param p the Point to clone
 	 * @return this Point
 	 */
-	public Point clone(Point p) {
+	public Point copyVals(Point p) {
 		int length = Math.min(dims(), p.dims());
 		for(int i = 0; i < length; i++) {
 			this.vals[i] = p.vals[i];
@@ -422,7 +433,7 @@ public class Point {
 	 * this is equivalent to .sub(new Point(x, y))
 	 * @param x
 	 * @param y
-	 * @return
+	 * @return this Point
 	 */
 	public Point sub(double x, double y) {
 		vals[0] -= x;
@@ -654,7 +665,7 @@ public class Point {
 	}
 
 	/**
-	 * returns the clockwise angle of this Point from (1, 0)
+	 * returns the clockwise angle of this Point around the origin from (1, 0)
 	 * @return the angle of this Point
 	 */
 	public double ang() {
