@@ -107,6 +107,7 @@ public class Frindow extends Panel {
 		this.colorType = colorType;
 		addKeyListener(keys);
 		addMouseListener(mouse);
+		addMouseWheelListener(mouse);
 		setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		frame.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		setVisible(false);

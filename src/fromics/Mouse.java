@@ -2,13 +2,10 @@ package fromics;
 
 import java.awt.IllegalComponentStateException;
 import java.awt.MouseInfo;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelEvent;
+import java.awt.event.*;
 import java.util.*;
 
-public class Mouse extends MouseAdapter implements MouseListener {
+public class Mouse extends MouseAdapter implements MouseListener, MouseWheelListener {
 	public int DRAG_CODE_OFFSET = 10;
 
 	private final Frindow win;
@@ -61,9 +58,16 @@ public class Mouse extends MouseAdapter implements MouseListener {
 	}
 	
 	public void process() {
+		loop:
 		while(!mouseEventQueue.isEmpty()) {
-			MouseEvent e = mouseEventQueue.remove();
-			process(e);
+			try {
+				MouseEvent e = mouseEventQueue.remove();
+				process(e);
+			} catch (NoSuchElementException e) {
+				System.out.println("WTF java");
+				e.printStackTrace();
+				break loop;
+			}
 		}
 	}
 
