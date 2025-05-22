@@ -113,7 +113,7 @@ public class Frindow extends Panel {
 		setVisible(false);
 		frame.setVisible(false);
 		new WindowOperator(frame);
-		frame.setResizable(true);
+		frame.setResizable(false);
 		frame.setFocusable(true);
 		setFocusable(true);
 	}

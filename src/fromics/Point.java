@@ -76,7 +76,7 @@ public class Point {
 	 * this constructor
 	 * @param vals the array which the Point's dimensions are initialized to
 	 */
-	public Point(double[] vals) {
+	public Point(double... vals) {
 		if(vals.length < 2) {
 			throw new IllegalArgumentException("dimension counts less than 2 not supported");
 		}
@@ -480,16 +480,66 @@ public class Point {
 	}
 
 	/**
-	 * returns a new Point representing the cross product between this Point
-	 * and the given Point, in the order this X p
-	 * @param p the point to get the cross product with
-	 * @return the cross product between this Point and Point p, this X p
+	 * returns a new double representing the signed magnitude of the 3d cross product between
+	 * the 2d components of this Point and the given one in the order this X p
+	 * @param p the Point to take the cross product with
+	 * @return the magnitude of the 3d cross product between this Point and the given one
 	 */
-	public Point cross(Point p) {
-		int dims = Math.max(p.dims(), this.dims());
-		Point cross = new Point(dims);
-		for(int i = 0; i < Math.max(p.dims(), this.dims()); i++) {
-			//TODO: Make this method
+	public double cross2(Point p) {
+		return this.X() * p.Y() - this.Y() * p.X();
+	}
+
+	/**
+	 * returns a new Point representing the cross product between this Point and the given
+	 * Point p, in the order this X p, assuming a z axis of 0 if either Point is 2d
+	 * @param p the Point to take a cross product with
+	 * @return the 3d cross product between this Point and the given one
+	 */
+	public Point cross3(Point p) {
+		double thisZ = this.dims() > 2 ? this.Z() : 0;
+		double otherZ = p.dims() > 2 ? p.Z() : 0;
+		return new Point(
+				this.Y() * otherZ - thisZ * p.Y(),
+				thisZ * p.X() - otherZ * this.X(),
+				this.X() * p.Y() - this.Y() * p.X());
+	}
+
+	/**
+	 * returns a Point which is perpendicular to every given Point, acting as a cross product which
+	 * can generalize to 4d and beyond.
+	 * the dimension of the returned Point is the number of given Points +1.
+	 * if a given Point has fewer dimensions that the returned Point will have, the missing
+	 * dimensions are assumed to be 0.
+	 * you should use cross2, cross3, or getPerpendicular whenever applicable rather than this method,
+	 * since this will be slower than any of those. (getPerpendicular() is technically a 2d cross product)
+	 * @param pts the Points to take the cross product of. should contain at least one Point
+	 * @return the cross product of all the given Points
+	 */
+	public static Point cross(Point... pts) {
+		Point cross = new Point(pts.length + 1);
+		double[][] pointArrs = new double[cross.dims()][pts.length];
+		for(int i = 0; i < pts.length; i++) {
+			Point cur = pts[i];
+			for(int j = 0; j < cross.dims(); j++) {
+				pointArrs[j][i] = cur.dims() > j ? cur.get(j) : 0;
+			}
+		}
+		//for each dimension of the new point
+		for(int i = 0; i < cross.dims(); i++) {
+			//make the matrix to get the determinant of
+			double[][] part = new double[cross.dims()][cross.dims()];
+			//to populate the array for the Matt, go over each dimension of the new Point
+			for(int j = 0, ind = 0; j < cross.dims(); j++) {
+				//skip the dimension which is equal to the dimension we're calculating
+				if(j == i) continue;
+				//for each value in that column
+				for(int k = 0; k < pts.length; k++) {
+					part[ind][k] = pointArrs[j][k];
+				}
+				//increment the index (it's here so the index doesn't increment when a column is skipped
+				ind++;
+			}
+			cross.set(i, Matt.determinantOf(part));
 		}
 		return cross;
 	}

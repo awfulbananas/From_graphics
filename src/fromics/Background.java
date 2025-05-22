@@ -20,7 +20,7 @@ public class Background extends Linkable {
 	//draws this Background and all of its children
 	//relative to this background
 	public void drawAll(Graphics g, BufferedImage img) {
-		setDefColor(g);
+		setToDefColor(g);
 		draw(g, img, 0, 0, 0);
 		for(int i = 0; i < linked.size(); i++) {
 			try {

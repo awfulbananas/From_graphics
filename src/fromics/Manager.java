@@ -18,7 +18,7 @@ public abstract class Manager extends Screens {
 
 	private long dt;
 	private boolean updated;
-	private Frindow observer;
+	protected Frindow observer;
 	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
@@ -110,7 +110,7 @@ public abstract class Manager extends Screens {
 				draw.run();
 				long newTime = System.nanoTime();
 				long elapsedTime = newTime - prevTime;
-				while(elapsedTime < (drawDelay + updateDelay) * 1000000) {
+				while(elapsedTime < (drawDelay + updateDelay) * 1000000L) {
 					newTime = System.nanoTime();
 					elapsedTime = newTime - prevTime;
 				}

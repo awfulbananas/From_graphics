@@ -35,14 +35,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	protected Set<Integer> keysPressed;
 	//the default color for this Linkable to be drawn as
 	private Color color;
-	//whether this Linkable is fading in after being linked
-	private boolean fadingIn;
-	//whether this Linkable is fading out before being unlinked
-	private boolean fadingOut;
-	//the amount of frames left in the fade when fading in or out
-	private double fadeTimer;
-	//the total amount of frames in a fade when fading in or out
-	private double initialFadeTime;
 	//whether or not this Linkable has ever been linked, used to only call onFirstLink once
 	protected boolean hasLinked;
 	
@@ -106,23 +98,6 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		this.ang = ang;
 	}
 	
-	//links this Linkable to the given parent, and causes it to visually fade in for
-	//fadeTime frames
-	public void fadeIn(Linkable parent, double fadeTimeSeconds) {
-		parent.link(this);
-		fadingIn = true;
-		fadeTimer = fadeTimeSeconds;
-		initialFadeTime = fadeTimeSeconds;
-	}
-	
-	//links this Linkable to the given parent, and causes it to visually fade in for
-	//fadeTime frames
-	public void fadeOut(double fadeTimeSeconds) {
-		fadingOut = true;
-		fadeTimer = fadeTimeSeconds;
-		initialFadeTime = fadeTimeSeconds;
-	}
-	
 	//updates this Linkable and all of it's children
 	public synchronized boolean updateAll() {
 		updating = true;
@@ -132,17 +107,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			if(next.updateAll()) lItr.remove();
 		}
 		boolean updateVal = update();
-		if(fadingIn || fadingOut) {
-			fadeTimer = fadeTimer - 0.000001 * dt();
-			if(fadeTimer < 0) {
-				fadingIn = false;
-			}
-		}
 		updating = false;
-		if(fadingOut && fadeTimer <= 0) {
-			parent.unlink(this);
-			fadingOut = false;
-		}
 		while(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
@@ -331,33 +296,13 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	
 	//sets the drawing color to the default drawing color for this Linkable,
 	//accounting for any fade currently in effect
-	protected void setDefColor(Graphics g) {
-		if(!(fadingIn || fadingOut)) {
-			g.setColor(color);
-		} else {
-			double fadeMult = ((double)fadeTimer / (double)initialFadeTime);
-			if(fadingIn) {
-				fadeMult = 1.0 - fadeMult;
-			}
-			float[] hsbComps = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-			hsbComps[2] *= fadeMult;
-			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
-		}
-		if(parent != null && (parent.fadingIn || parent.fadingOut)) {
-			double fadeMult = ((double)parent.fadeTimer / (double)parent.initialFadeTime);
-			if(parent.fadingIn) {
-				fadeMult = 1.0 - fadeMult;
-			}
-			Color currentColor = g.getColor();
-			float[] hsbComps = Color.RGBtoHSB(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), null);
-			hsbComps[2] *= fadeMult;
-			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
-		}
+	protected void setToDefColor(Graphics g) {
+		g.setColor(color);
 	}
 	
 	//draws this Linkable, and all its children relative to it's parent
 	public void drawAll(Graphics g, BufferedImage img) {
-		setDefColor(g);
+		setToDefColor(g);
 		try {
 			draw(g, img, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
 		} catch(NullPointerException e) {
