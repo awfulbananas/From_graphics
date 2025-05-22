@@ -6,21 +6,19 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 //a class to represent a manager for different screens of a game or application
+//it manages the update/draw loop(s), and extends Screens
 //it's linkable so that you could have different managers for sub-menus or something similar
 //I usually put my main method in here
-public abstract class Manager extends Background {
+public abstract class Manager extends Screens {
 	public static final int DEF_DRAW_DELAY = 15;
 	public static final int DEF_UPDATE_DELAY = 15;
 	public static final int START_DELAY = 20;
-	protected Background[] screens;
-	protected int screen;
 	private final int drawDelay;
 	private final int updateDelay;
-	protected boolean updated;
+
 	private long dt;
-	
-	//TODO: add a constructor for a Manager to be used as a sub-menu or other non-main screens
-	//or else create a different class for that purpose
+	private boolean updated;
+	private Frindow observer;
 	
 	//constructs a new Manager with the given Frindow
 	//managers are constructed at (0, 0) by default, 
@@ -30,30 +28,30 @@ public abstract class Manager extends Background {
 	}
 	
 	//constructs a new Manager with the given Frindow, draw delay, and update delay
-		public Manager(Frindow observer, int drawDelayMillis, int updateDelayMillis) {
-			super(observer);
-			updateDelay = updateDelayMillis;
-			drawDelay = drawDelayMillis;
-			dt = updateDelayMillis * 1000000L;
-			updated = true;
-			setX(0);
-			setY(0);
-			hasLinked = true;
-		}
-	
-	//returns the currently displayed screen of this Manager
-	public Background currentScreen() {
-		return screens[screen];
+	public Manager(Frindow observer, int drawDelayMillis, int updateDelayMillis) {
+		super();
+		updateDelay = updateDelayMillis;
+		drawDelay = drawDelayMillis;
+		dt = updateDelayMillis * 1000000L;
+		setX(0);
+		setY(0);
+		hasLinked = true;
+		updated = true;
 	}
 	
-	//updates the current screen of the Manager,
-	//and switches to the next one if it needs to
-	//feel free to override this if you want to change
-	//how screens are swapped between
+	//begins the loop of updating Linkables and drawing frames, using java Timers to run the
+	//tasks as close to the given delays as possible
+	public void startLoop() {
+		Timer updateRunner = new Timer();
+		updateRunner.schedule(this.new RunUpdate(), START_DELAY, updateDelay);
+		Timer drawRunner = new Timer();
+		drawRunner.schedule(this.new RunDraw(), START_DELAY, drawDelay);
+	}
+
 	@Override
 	public boolean updateAll() {
-		boolean updateVal = update();
 		observer.update();
+		boolean updateVal = update();
 		if(screens[screen].nextScreen()) {
 			int nextScreen = screens[screen].getNextScreen();
 			nextScreen = nextScreen==-1?(screen+1)%screens.length:nextScreen;
@@ -64,29 +62,6 @@ public abstract class Manager extends Background {
 		screens[screen].updateAll();
 		updated = true;
 		return updateVal;
-	}
-	
-	//draws the current Screen of this Manager and all of it's children
-	public void drawAll(Graphics g, BufferedImage img) {
-		draw(g, img, 0, 0, 0);
-		if(screens[screen] == null) return;
-		screens[screen].drawAll(g, img);
-	}
-	
-	//this method should initialize screen n in screens
-	
-	//for example, if screen 0 is a title screen, and screen 1 is the game,
-	//the if this method is passed 0, it should initialize the title screen at index
-	//0 of screens, and if it's passed 1, then it should
-	protected abstract void initScreen(int n);
-	
-	//begins the loop of updating Linkables and drawing frames, using java Timers to run the
-	//tasks as close to the given delays as possible
-	public void startLoop() {
-		Timer updateRunner = new Timer();
-		updateRunner.schedule(this.new RunUpdate(), START_DELAY, updateDelay);
-		Timer drawRunner = new Timer();
-		drawRunner.schedule(this.new RunDraw(), START_DELAY, drawDelay);
 	}
 	
 	//begins the loop of updating Linkables and drawing frames, but using a variable framerate method
@@ -168,7 +143,50 @@ public abstract class Manager extends Background {
 			observer.defPaint();
 		}
 	}
-	
-	
 
+	//returns the Mouse object for the current Frindow
+	public Mouse getMouse() {
+		return observer.getMouse();
+	}
+
+	//returns whether the Frindow this background is displayed on uses a colour model with an alpha channel
+	protected boolean hasAlpha() {
+		int colorType = observer.getColorType();
+		return colorType == BufferedImage.TYPE_INT_ARGB || colorType == BufferedImage.TYPE_4BYTE_ABGR;
+	}
+
+	//returns a Point representing the lower-right corner of the bounds of the screen
+	@Override
+	public Point getMaxBounds() {
+		return new Point(observer.getWidth(), observer.getHeight());
+	}
+
+	//returns a Point representing the upper-left corner of the screen
+	@Override
+	public Point getMinBounds() {
+		return new Point();
+	}
+
+	//returns the width of the window
+	@Override
+	public int getScreenWidth() {
+		return observer.getWidth();
+	}
+
+	//returns the height of the window
+	@Override
+	public int getScreenHeight() {
+		return observer.getHeight();
+	}
+
+	//adds a function to be run whenever a keystroke happens (including control keys like arrows, shift and ctrl)
+	@Override
+	protected void addKeystrokeFunction(KeypressFunction func) {
+		observer.addKeystrokeFunction(func);
+	}
+
+	@Override
+	public void addMouseEventFunction(MouseEventFunction func) {
+		observer.addMouseEventFunction(func);
+	}
 }

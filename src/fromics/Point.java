@@ -24,6 +24,8 @@ import java.util.function.Function;
  * @author Joseph Fromel
  */
 public class Point {
+	public static final Point ORIGIN = new Point();
+
 	/**
 	 *the array of values for the location of the Point,
 	 *from lowest dimension to highest,
@@ -475,6 +477,21 @@ public class Point {
 			sum += this.vals[i] * p.vals[i];
 		}
 		return sum;
+	}
+
+	/**
+	 * returns a new Point representing the cross product between this Point
+	 * and the given Point, in the order this X p
+	 * @param p the point to get the cross product with
+	 * @return the cross product between this Point and Point p, this X p
+	 */
+	public Point cross(Point p) {
+		int dims = Math.max(p.dims(), this.dims());
+		Point cross = new Point(dims);
+		for(int i = 0; i < Math.max(p.dims(), this.dims()); i++) {
+			//TODO: Make this method
+		}
+		return cross;
 	}
 
 	/**

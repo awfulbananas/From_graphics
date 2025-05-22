@@ -109,59 +109,63 @@ public abstract class PolygonCollider extends Collidable {
 	public int getCollisionType() {
 		return Collidable.TYPE_POLYGON;
 	}
+
+
 	
 	//returns whether this Collidable is colliding with Collidable other
 	@Override
 	public boolean check(Collidable other) {
-		switch(other.getCollisionType()) {
-			case Collidable.TYPE_POINT:
-				return shapeContains(other.copy().sub(this));
-			case Collidable.TYPE_POLYGON:
-				for(Point p : ((PolygonCollider)other).absPoints()) {
-					if(shapeContains(p.copy().sub(this))) return true;
-				}
-				for(Point p : this.absPoints()) {
-					if(((PolygonCollider)other).shapeContains(p.copy().sub(other))) return true;
-				}
-				return false;
-			case Collidable.TYPE_OVAL:
-				double rad = ((CircleCollider)other).getRadius();
-				Point relLoc = other.copy().sub(this);
-				//for each consecutive pair of points in the collision box, compare the line they make
-				//with the line the circle collider makes with the center of the shape
-				for(int i = 0; i < shape.length; i++) {
-					Point curr = shape[i];
-					Point relPoint = relLoc.copy().add(curr);
-					//is the point inside the circle
-					if(relPoint.sMag() < rad * rad) return true;
-					Point next = shape[(i + 1) % shape.length];
-					Point relNext = relLoc.copy().add(next);
-					double pointSlope = (curr.Y() - next.Y()) / (curr.X() - next.X());
-					//this gets the x and y values of the closest point of the line to the center of the circle, relative to the circle
-					//source:just trust the algebra
-					double xIntersection = (relPoint.Y()*pointSlope - relPoint.X()*pointSlope*pointSlope)/(-1.0-pointSlope*pointSlope);
-					double yIntersection = -xIntersection / pointSlope;
-					double minX;
-					double maxX;
-
-					if(relPoint.X() < relNext.X()) {
-						minX = relPoint.X();
-						maxX = relNext.X();
-					} else {
-						minX = relNext.X();
-						maxX = relPoint.X();
-					}
-					//if the place where the lines intersect isn't between the points, they're not colliding
-					double distSqrd = Math.pow(xIntersection, 2) + Math.pow(yIntersection, 2);
-					if(xIntersection >= minX && xIntersection <= maxX && distSqrd > rad * rad) return true;
-				}
-				return false;
-			default:
-				return false;
-		}
+		return switch(other.getCollisionType()) {
+			case Collidable.TYPE_POINT -> shapeContains(other.copy().sub(this));
+			case Collidable.TYPE_POLYGON, Collidable.TYPE_RECT -> checkPolygon((PolygonCollider) other);
+			case Collidable.TYPE_OVAL -> checkCircle((CircleCollider) other);
+			default -> false;
+		};
 	}
 
+	public boolean checkPolygon(PolygonCollider other) {
+		for (Point p : ((PolygonCollider) other).absPoints()) {
+			if (shapeContains(p.copy().sub(this))) return true;
+		}
+		for (Point p : this.absPoints()) {
+			if (((PolygonCollider) other).shapeContains(p.copy().sub(other))) return true;
+		}
+		return false;
+	}
 
+	public boolean checkCircle(CircleCollider other) {
+		double rad = ((CircleCollider) other).getRadius();
+		Point relLoc = other.copy().sub(this);
+		//for each consecutive pair of points in the collision box, compare the line they make
+		//with the line the circle collider makes with the center of the shape
+		for (int i = 0; i < shape.length; i++) {
+			Point curr = shape[i];
+			Point relPoint = relLoc.copy().add(curr);
+			//is the point inside the circle
+			if (relPoint.sMag() < rad * rad) return true;
+			Point next = shape[(i + 1) % shape.length];
+			Point relNext = relLoc.copy().add(next);
+			double pointSlope = (curr.Y() - next.Y()) / (curr.X() - next.X());
+			//this gets the x and y values of the closest point of the line to the center of the circle, relative to the circle
+			//source:just trust the algebra lol
+			double xIntersection = (relPoint.Y() * pointSlope - relPoint.X() * pointSlope * pointSlope) / (-1.0 - pointSlope * pointSlope);
+			double yIntersection = -xIntersection / pointSlope;
+			double minX;
+			double maxX;
+
+			if (relPoint.X() < relNext.X()) {
+				minX = relPoint.X();
+				maxX = relNext.X();
+			} else {
+				minX = relNext.X();
+				maxX = relPoint.X();
+			}
+			//if the place where the lines intersect isn't between the points, they're not colliding
+			double distSqrd = Math.pow(xIntersection, 2) + Math.pow(yIntersection, 2);
+			if (xIntersection >= minX && xIntersection <= maxX && distSqrd > rad * rad) return true;
+		}
+		return false;
+	}
 	
 	//returns the Points of this PolygonCollider in world space
 	public Point[] absPoints() {

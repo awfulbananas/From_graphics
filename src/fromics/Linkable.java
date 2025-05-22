@@ -92,8 +92,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	private void onFirstLinks() {
 		onFirstLink();
 		hasLinked = true;
-		for(Linkable l : linked) {
-			l.onFirstLinks();
+		for(int i = 0; i < linked.size(); i++) {
+			linked.get(i).onFirstLinks();
 		}
 	}
 	
@@ -143,10 +143,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			parent.unlink(this);
 			fadingOut = false;
 		}
-		if(!linkQueue.isEmpty()) {
+		while(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
-		if(!unlinkQueue.isEmpty()) {
+		while(!unlinkQueue.isEmpty()) {
 			unlink(unlinkQueue.remove());
 		}
 		return updateVal;
@@ -237,6 +237,12 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			Point pScale = parent.getAbsScale();
 			return new Point(scale.X() * pScale.X(), scale.Y() * pScale.Y());
 		}
+	}
+
+	public void goToCenterScreen() {
+		Point bounds = getMaxBounds();
+		setX(bounds.X() / 2);
+		setY(bounds.Y() / 2);
 	}
 	
 	//sets the set used to detect key presses
@@ -360,8 +366,8 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		}
 
 		try {
-			for(Linkable l : linked) {
-				l.drawAll(g, img);
+			for(int i = 0; i < linked.size(); i++) {
+				linked.get(i).drawAll(g, img);
 			}
 		} catch(ConcurrentModificationException e) {
 			e.printStackTrace();
@@ -389,10 +395,13 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
-		
+
+		Point newXLoc = (new Point(1, 0)).rot(totalAng);
+		Point newYLoc = newXLoc.getPerpendicular();
+
 		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((relativeX[i] * size) + totalX);
-			yLocs[i] = (int)((relativeY[i] * size) + totalX);
+			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
+			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalY);
 		}
 		
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
@@ -409,7 +418,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		
 		for(int i = 0; i < relativeX.length; i++) {
 			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalX);
+			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalY);
 		}
 		
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
