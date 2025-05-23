@@ -1,7 +1,10 @@
 package fromics;
 
-import java.awt.*;
+import fromics.events.Event;
+
 import java.awt.image.BufferedImage;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,8 +18,10 @@ public abstract class Manager extends Screens {
 	public static final int START_DELAY = 20;
 	private final int drawDelay;
 	private final int updateDelay;
+	private final Queue<Event> eventQueue;
 
 	private long dt;
+	private Event curEvent;
 	private boolean updated;
 	protected Frindow observer;
 	
@@ -33,6 +38,8 @@ public abstract class Manager extends Screens {
 		updateDelay = updateDelayMillis;
 		drawDelay = drawDelayMillis;
 		dt = updateDelayMillis * 1000000L;
+		eventQueue = new LinkedList<>();
+		curEvent = null;
 		setX(0);
 		setY(0);
 		hasLinked = true;
@@ -52,6 +59,13 @@ public abstract class Manager extends Screens {
 	public boolean updateAll() {
 		observer.update();
 		boolean updateVal = update();
+		updateChildren();
+		manageEvents();
+		updated = true;
+		return updateVal;
+	}
+
+	private void updateChildren() {
 		if(screens[screen].nextScreen()) {
 			int nextScreen = screens[screen].getNextScreen();
 			nextScreen = nextScreen==-1?(screen+1)%screens.length:nextScreen;
@@ -60,8 +74,25 @@ public abstract class Manager extends Screens {
 			screen = nextScreen;
 		}
 		screens[screen].updateAll();
-		updated = true;
-		return updateVal;
+	}
+
+	private void manageEvents() {
+		if(curEvent == null && !eventQueue.isEmpty()) {
+			curEvent = eventQueue.remove();
+			curEvent.start();
+		}
+		if(curEvent != null) {
+			boolean runningConsecutiveEvents = true;
+			while (runningConsecutiveEvents) {
+				curEvent.act();
+				if(curEvent.isFinished() && !eventQueue.isEmpty()) {
+					curEvent = eventQueue.remove();
+					curEvent.start();
+				} else {
+					runningConsecutiveEvents = false;
+				}
+			}
+		}
 	}
 	
 	//begins the loop of updating Linkables and drawing frames, but using a variable framerate method
@@ -149,7 +180,7 @@ public abstract class Manager extends Screens {
 		return observer.getMouse();
 	}
 
-	//returns whether the Frindow this background is displayed on uses a colour model with an alpha channel
+	//returns whether the Frindow this manager uses is displayed on uses a colour model with an alpha channel
 	protected boolean hasAlpha() {
 		int colorType = observer.getColorType();
 		return colorType == BufferedImage.TYPE_INT_ARGB || colorType == BufferedImage.TYPE_4BYTE_ABGR;
@@ -188,5 +219,10 @@ public abstract class Manager extends Screens {
 	@Override
 	public void addMouseEventFunction(MouseEventFunction func) {
 		observer.addMouseEventFunction(func);
+	}
+
+	@Override
+	public void queueEvent(Event e) {
+		eventQueue.add(e);
 	}
 }

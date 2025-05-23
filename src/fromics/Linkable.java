@@ -1,5 +1,7 @@
 package fromics;
 
+import fromics.events.Event;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -133,6 +135,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 
 	public Point getMousePos(MouseEvent e) {
 		return new Point(e.getX(), e.getY());
+	}
+
+	public void queueEvent(Event e) {
+		parent.queueEvent(e);
 	}
 	
 	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
@@ -325,7 +331,7 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	}
 	
 	//returns the change in time between the previous update and this one
-	//in thousands of nanoseconds
+	//in microseconds
 	public int dt() {
 		return parent.dt();
 	}
