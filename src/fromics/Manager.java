@@ -3,10 +3,7 @@ package fromics;
 import fromics.events.Event;
 
 import java.awt.image.BufferedImage;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 //a class to represent a manager for different screens of a game or application
 //it manages the update/draw loop(s), and extends Screens
@@ -19,9 +16,9 @@ public abstract class Manager extends Screens {
 	private final int drawDelay;
 	private final int updateDelay;
 	private final Queue<Event> eventQueue;
+	private final List<Event> activeEvents;
 
 	private long dt;
-	private Event curEvent;
 	private boolean updated;
 	protected Frindow observer;
 	
@@ -39,7 +36,8 @@ public abstract class Manager extends Screens {
 		drawDelay = drawDelayMillis;
 		dt = updateDelayMillis * 1000000L;
 		eventQueue = new LinkedList<>();
-		curEvent = null;
+		activeEvents = new ArrayList<>();
+		this.observer = observer;
 		setX(0);
 		setY(0);
 		hasLinked = true;
@@ -77,20 +75,31 @@ public abstract class Manager extends Screens {
 	}
 
 	private void manageEvents() {
-		if(curEvent == null && !eventQueue.isEmpty()) {
-			curEvent = eventQueue.remove();
-			curEvent.start();
+		if(activeEvents.isEmpty() && !eventQueue.isEmpty()) {
+			Event newEvent = eventQueue.remove();
+			activeEvents.add(newEvent);
+			newEvent.start();
 		}
-		if(curEvent != null) {
+		if(!activeEvents.isEmpty()) {
 			boolean runningConsecutiveEvents = true;
 			while (runningConsecutiveEvents) {
-				curEvent.act();
-				if(curEvent.isFinished() && !eventQueue.isEmpty()) {
-					curEvent = eventQueue.remove();
-					curEvent.start();
+				//this is a bit silly, but since eventItr isn't needed after this chunk, I decided to enclose it
+				{
+					for (int i = 0; i < activeEvents.size(); i++) {
+						Event curEvent = activeEvents.get(i);
+						curEvent.act();
+						if (curEvent.isFinished()) {
+							activeEvents.remove(i);
+							i--;
+						}
+					}
+				}
+				if(activeEvents.isEmpty() && !eventQueue.isEmpty()) {
+					activeEvents.add(eventQueue.remove());
 				} else {
 					runningConsecutiveEvents = false;
 				}
+
 			}
 		}
 	}
@@ -224,5 +233,11 @@ public abstract class Manager extends Screens {
 	@Override
 	public void queueEvent(Event e) {
 		eventQueue.add(e);
+	}
+
+	@Override
+	public void addEvent(Event e) {
+		activeEvents.add(e);
+		e.start();
 	}
 }

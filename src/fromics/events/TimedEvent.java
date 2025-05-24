@@ -35,6 +35,11 @@ public class TimedEvent implements Event{
     }
 
     @Override
+    public void reset() {
+        isOverTime = false;
+    }
+
+    @Override
     public void act() {
         long timePassedMillis = System.currentTimeMillis() - startTime;
         if(timePassedMillis > durationMillis) {

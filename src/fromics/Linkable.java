@@ -140,6 +140,10 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 	public void queueEvent(Event e) {
 		parent.queueEvent(e);
 	}
+
+	public void addEvent(Event e) {
+		parent.addEvent(e);
+	}
 	
 	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
 	//these bounds aren't enforced by default, but this method can be used for something like screen-looping

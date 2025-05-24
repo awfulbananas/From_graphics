@@ -26,6 +26,14 @@ public class ParallelEvent implements Event{
     }
 
     @Override
+    public void reset() {
+        a.reset();
+        b.reset();
+        runningA = true;
+        runningB = true;
+    }
+
+    @Override
     public void act() {
         if(runningA) {
             a.act();

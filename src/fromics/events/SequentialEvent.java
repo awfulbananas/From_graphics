@@ -13,12 +13,19 @@ public class SequentialEvent implements Event{
 
     @Override
     public boolean isFinished() {
-        return first.isFinished() && second.isFinished();
+        return finishedFirst && second.isFinished();
     }
 
     @Override
     public void start() {
         first.start();
+    }
+
+    @Override
+    public void reset() {
+        first.reset();
+        second.reset();
+        finishedFirst = false;
     }
 
     @Override
