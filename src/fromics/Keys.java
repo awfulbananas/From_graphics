@@ -37,6 +37,10 @@ public class Keys extends KeyAdapter implements KeyListener{
 		if(!keypressFunctions.contains(func))
 			keypressFunctions.add(func);
 	}
+
+	public void removeKeystrokeFunction(KeypressFunction func) {
+		keypressFunctions.remove(func);
+	}
 	
 	//processes all currently queued key typed codes, running relevant KeypressFunctions
 	public void process() {

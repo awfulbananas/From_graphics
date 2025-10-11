@@ -2,8 +2,6 @@ package fromics;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.DoubleFunction;
 import java.util.function.Function;
 
 /**
@@ -21,7 +19,7 @@ import java.util.function.Function;
  * given that the x dimension increases to the right, and the y dimension increases downwards
  * this class can also be used completely independently of the rest of this library,
  * and is probably useful as such
- * @author Joseph Fromel
+ * @author awfulbananas
  */
 public class Point {
 	public static final Point ORIGIN = new Point();
@@ -83,6 +81,7 @@ public class Point {
 		this.vals = Arrays.copyOf(vals, vals.length);
 	}
 
+
 	public Point(double[] vals, boolean referenceArr) {
 		if(vals.length < 2) {
 			throw new IllegalArgumentException("dimension counts less than 2 not supported");
@@ -92,6 +91,16 @@ public class Point {
 		} else {
 			this.vals = Arrays.copyOf(vals, vals.length);
 		}
+	}
+
+
+	public Point(Point axis, double ang) {
+		vals = new double[4];
+		double sAng = Math.sin(ang/2.0);
+		vals[0] = axis.X() * sAng;
+		vals[1] = axis.Y() * sAng;
+		vals[2] = axis.Z() * sAng;
+		vals[3] = Math.cos(ang/2.0);
 	}
 
 	/**
@@ -294,6 +303,36 @@ public class Point {
 	public void setZ(double n) {
 		if(vals.length < 3) throw new IllegalStateException("z-value requires a point with at least 3 dimensions");
 		vals[2] = n;
+	}
+
+	public double W() {
+		if(vals.length < 4) throw new IllegalStateException("w-value requires a point with at least 4 dimensions");
+		return vals[3];
+	}
+
+	public void setW(double n) {
+		if(vals.length < 4) throw new IllegalStateException("w-value requires a point with at least 4 dimensions");
+		vals[3] = n;
+	}
+
+	public void setXY(double x, double y) {
+		vals[0] = x;
+		vals[1] = y;
+	}
+
+	public void setXYZ(double x, double y, double z) {
+		setXY(x, y);
+		vals[2] = z;
+	}
+
+	public void setXYZW(double x, double y, double z, double w) {
+		setXYZ(x, y, z);
+	}
+
+	public void setDims(double... dims) {
+		for(int i = 0; i < dims.length; i++) {
+			vals[i] = dims[i];
+		}
 	}
 
 	/**
@@ -619,38 +658,75 @@ public class Point {
 	}
 
 	/**
-	 * multiplies this Point by the given Point as if they're complex numbers in the form
+	 * multiplies this Point by the given Point as if
+	 * they're complex numbers in the form
 	 * x + yi, then returns this Point.
-	 * both Points must have exactly two dimensions
+	 * both Points must have at least two dimensions
 	 * @param o the Point to multiply this one by
 	 * @return this Point
-	 * @throws IllegalArgumentException if either Point has more than two dimensions
 	 */
 	public Point cMult(Point o) {
-		if(o.vals.length > 2 || this.vals.length > 2) {
-			throw new IllegalArgumentException();
-		}
-		double newX = X() * o.X() - Y() * o.Y();
-		double newY = X() * o.Y() + Y() * o.X();
-		setX(newX);
-		setY(newY);
+		double newR = X() * o.X() - Y() * o.Y();
+		double newI = X() * o.Y() + Y() * o.X();
+		setX(newR);
+		setY(newI);
 		return this;
 	}
 
 	/**
-	 * divides this Point by the given Point, using only the first two dimensions,
-	 * as if they're complex numbers in the form
+	 * divides this Point by the given Point as if
+	 * they're complex numbers in the form
 	 * x + yi, then returns this Point.
+	 * both Points must have at least two dimensions
 	 * @param o the Point to divide this one by
 	 * @return this Point
 	 */
 	public Point cDiv(Point o) {
-		double oSqrd = o.X() * o.X() + o.Y() * o.Y();
-		double newX = (X() * o.X() + Y() * o.Y()) / oSqrd;
-		double newY = (Y() * o.X() - X() * o.Y()) / oSqrd;
-		setX(newX);
-		setY(newY);
+		double oSqrd = o.sMag();
+		double newR = (X() * o.X() + Y() * o.Y()) / oSqrd;
+		double newI = (Y() * o.X() - X() * o.Y()) / oSqrd;
+		setX(newR);
+		setY(newI);
 		return this;
+	}
+
+	/**
+	 * multiplies this Point by the given Point as if
+	 * they're quaternions in the form
+	 * xi + yj + zk + w, then returns this Point
+	 *
+	 */
+	public Point qMult(Point o) {
+		setXYZW(
+				X() * o.X() - Y() * o.Y() - Z() * o.Z() - W() * o.W(),
+				X() * o.Y() + Y() * o.X() + Z() * o.W() - W() * o.Z(),
+				X() * o.Z() + Z() * o.X() + W() * o.Y() - Y() * o.W(),
+				X() * o.W() + W() * o.X() + Y() + o.Z() - Z() * o.Y()
+		);
+		return this;
+	}
+
+	public Point qDiv(Point o) {
+		double oSqrd = o.sMag();
+		setXYZW(
+				(X() * o.X() + Y() * o.Y() + Z() * o.Z() + W() * o.W()) / oSqrd,
+				(-X() * o.Y() + Y() * o.X() + Z() * o.W() - W() * o.Z()) / oSqrd,
+				(-X() * o.Z() - Y() * o.W() + Z() * o.X() + W() * o.Y()) / oSqrd,
+				(-X() * o.Z() + Y() * o.W() - Z() * o.Y() + W() * o.X()) / oSqrd
+		);
+		return this;
+	}
+
+	public Point getQInv() {
+		return getQConj().div(sMag());
+	}
+
+	public Point getQConj() {
+		return new Point(X(), -Y(), -Z(), -W());
+	}
+
+	public Point getQVec() {
+		return new Point(Y(), Z(), W());
 	}
 
 	/**
@@ -673,8 +749,8 @@ public class Point {
 	public Point rot(double rot) {
 		double oldX = X();
 		double oldY = Y();
-		setX(Math.cos(rot) * oldX + Math.sin(rot) * oldY);
-		setY(Math.cos(rot) * oldY - Math.sin(rot) * oldX);
+		setX(Math.cos(rot) * oldX - Math.sin(rot) * oldY);
+		setY(Math.cos(rot) * oldY + Math.sin(rot) * oldX);
 		return this;
 	}
 

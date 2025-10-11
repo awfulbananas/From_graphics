@@ -44,6 +44,10 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 		}
 	}
 
+	public void removeMouseEventFunction(MouseEventFunction func) {
+		mouseEventFunctions.remove(func);
+	}
+
 	private void process(MouseEvent e) {
 		for(int i = 0; i < mouseEventFunctions.size(); i++) {
 			mouseEventFunctions.get(i).accept(e);
@@ -58,15 +62,13 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 	}
 	
 	public void process() {
-		loop:
 		while(!mouseEventQueue.isEmpty()) {
-			try {
-				MouseEvent e = mouseEventQueue.remove();
+			MouseEvent e = mouseEventQueue.poll();
+			if(e != null) {
 				process(e);
-			} catch (NoSuchElementException e) {
+			} else {
 				System.out.println("WTF java");
-				e.printStackTrace();
-				break loop;
+				break;
 			}
 		}
 	}
@@ -116,5 +118,4 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 		int mask = MouseEvent.getMaskForButton(button);
 		return (mask & e.getModifiersEx()) == mask;
 	}
-
 }

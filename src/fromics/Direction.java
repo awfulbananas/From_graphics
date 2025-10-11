@@ -10,7 +10,6 @@ public enum Direction {
 
     public int val() {
         return switch (this) {
-            case null -> -1;
             case RIGHT -> 0;
             case UP -> 1;
             case LEFT -> 2;
@@ -30,7 +29,6 @@ public enum Direction {
 
     public Direction clockwise() {
         return switch (this) {
-            case null -> null;
             case UP -> RIGHT;
             case RIGHT -> DOWN;
             case DOWN -> LEFT;
@@ -40,7 +38,6 @@ public enum Direction {
 
     public Direction counterClockwise() {
         return switch(this) {
-            case null -> null;
             case RIGHT -> UP;
             case UP -> LEFT;
             case LEFT -> DOWN;
@@ -50,7 +47,6 @@ public enum Direction {
 
     public Direction flip() {
         return switch (this) {
-            case null -> null;
             case RIGHT -> LEFT;
             case LEFT -> RIGHT;
             case UP -> DOWN;

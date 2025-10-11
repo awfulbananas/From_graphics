@@ -1,4 +1,6 @@
-package fromics;
+package fromics.colliders;
+
+import fromics.Point;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;

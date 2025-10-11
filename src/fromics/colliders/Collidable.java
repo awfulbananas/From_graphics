@@ -1,4 +1,6 @@
-package fromics;
+package fromics.colliders;
+
+import fromics.Linkable;
 
 /**
  * Collidable is an abstract class representing an object with position and the ability to detect collision with other Collidables

@@ -1,7 +1,6 @@
-package fromics;
+package fromics.colliders;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import fromics.Point;
 
 public abstract class RectCollider extends PolygonCollider{
     private final double width, height;

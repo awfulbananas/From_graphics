@@ -1,4 +1,4 @@
-package fromics;
+package fromics.colliders;
 
 //a class representing a Collidable with Point collision
 public abstract class PointCollider extends Collidable {

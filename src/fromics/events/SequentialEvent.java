@@ -34,6 +34,7 @@ public class SequentialEvent implements Event{
             first.act();
             if(first.isFinished()) {
                 finishedFirst = true;
+                second.start();
             }
         }
         if(finishedFirst) {

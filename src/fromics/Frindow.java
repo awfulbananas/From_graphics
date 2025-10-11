@@ -148,24 +148,35 @@ public class Frindow extends Panel {
 	 *             and when drawing frames to the screen
 	 * @return a Graphics object which is mostly useless which I forgot to get rid of returning
 	 */
-	public Graphics init(int bufferCount, Manager game) {
+	public void init(int bufferCount, Manager game) {
 		this.game = game;
+		game.keysPressed = keys.codes;
 		for(int i = 0; i < bufferCount; i++) contentBuffer.add(new BufferedImage(getWidth(), getHeight(), colorType));
 		targetFrameBufferSize = bufferCount;
 		setVisible(true);
 		frame.setVisible(true);
 		initG = getGraphics();
-		return initG;
 	}
 
 	/**
 	 * starts a thread which draws the next frame in the frame buffer to the screen
-	 * and uses the drawAll method of the Manager game to create the next frame or the buffer
+	 * and uses the drawAll method of the Manager game to create the next frame of the buffer
 	 */
 	public void defPaint() {
 		if(!painting) {
 			painting = true;
 			(new Thread(() -> paint(initG))).start();
+		}
+	}
+
+	/**
+	 * draws the next frame from the frame buffer to the screen and uses the drawAll method
+	 * of the Manager game to create the next frame of the buffer, without using a separate thread like defPaint()
+	 */
+	public void syncDefPaint() {
+		if(!painting) {
+			painting = true;
+			paint(initG);
 		}
 	}
 
@@ -232,6 +243,10 @@ public class Frindow extends Panel {
 		keys.addKeypressFunction(func);
 	}
 
+	public void removeKeystrokeFunction(KeypressFunction func) {
+		keys.removeKeystrokeFunction(func);
+	}
+
 	/**
 	 * registers a mouse event function to be run whenever a mouse button from one to three is pressed and released,
 	 * or the mouse wheel is scrolled, giving the function the corresponding MouseEvent as it's argument
@@ -239,6 +254,10 @@ public class Frindow extends Panel {
 	 */
 	public void addMouseEventFunction(MouseEventFunction func) {
 		mouse.addMouseEventFunction(func);
+	}
+
+	public void removeMouseEventFunction(MouseEventFunction func) {
+		mouse.removeMouseEventFunction(func);
 	}
 
 	/**
