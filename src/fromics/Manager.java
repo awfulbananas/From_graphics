@@ -208,6 +208,10 @@ public abstract class Manager extends Screens {
 	public int dt() {
 		return (int) (dt / 1000);
 	}
+
+	public long dtNanos() {
+		return dt;
+	}
 	
 	//a class representing a task for updating all linked Linkables at a regular interval using a java Timer
 	private class RunUpdate extends TimerTask {
@@ -278,6 +282,14 @@ public abstract class Manager extends Screens {
 
 	public void removeMouseEventFunction(MouseEventFunction func) {
 		observer.removeMouseEventFunction(func);
+	}
+
+	/**
+	 * Returns the Frindow (this libraries window object) associated with this Manager.
+	 * @return the Frindow associated with this Manager
+	 */
+	public Frindow getFrindow() {
+		return observer;
 	}
 
 	@Override

@@ -273,6 +273,15 @@ public abstract class Linkable extends Point {
 	}
 
 	/**
+	 * Returns the Frindow (this libraries window object) associated with this Linkable.
+	 * will error if this is not linked
+	 * @return the Frindow associated with this Linkable
+	 */
+	public Frindow getFrindow() {
+		return parent.getFrindow();
+	}
+
+	/**
 	 * adds the given Event to the event queue, which will be executed when all currently running Events
 	 * and previously queued Events have finished.
 	 * only works if this Linkable has a parent.
@@ -537,11 +546,21 @@ public abstract class Linkable extends Point {
 	}
 
 	/**
-	 * returns the amount of time between this update ant the previous one in milliseconds
-	 * @return the dt in microseconds from the last update
+	 * returns the amount of time between this update and the previous one in milliseconds
+	 * @return the dt in milliseconds from the last update
 	 */
 	public int dt() {
 		return parent.dt();
+	}
+
+	/**
+	 * returns the amount of time between this update and the previous one in nanoseconds
+	 * this is not the default, mostly because multiplying everything by 1000000 can be annoying,
+	 * so milliseconds are more convenient
+	 * @return the dt in nanoseconds from the last update
+	 */
+	public long dtNanos() {
+		return parent.dtNanos();
 	}
 
 	/**

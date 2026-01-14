@@ -755,6 +755,43 @@ public class Point {
 	}
 
 	/**
+	 * rotates this Point counter-clockwise around the given axes by the given angle in radians.
+	 * the number of axes given must be <= the number of dimensions - 2, and if fewer than (dims() - 2)
+	 * axes are given, it only uses the first (axes + 2) dimensions (ie. a 4d point which had .rot(Math.PI/2, 2)
+	 * would rotate the x and y dimensions a quarter around the z axis as if the
+	 * x, y, and z dimensions of the 4d point were a 3d point).
+	 * the axes given must not repeat, and must be >= 0 and < the number of dimensions of the Point
+	 * @param rot the number of radians to rotate by
+	 * @param axes the axis/axes to rotate around
+	 * @return this Point
+	 */
+	public Point rot(double rot, int... axes) {
+		if(axes.length > vals.length - 2) {
+			throw new IllegalArgumentException("Number of axes given must be <= the number of dimensions of the Point - 2");
+		}
+		int axisA = -1;
+		int axisB = -1;
+		boolean[] axisRotating = new boolean[vals.length];
+		for(int i = 0; i < axes.length; i++) {
+			axisRotating[axes[i]] = true;
+		}
+		for(int i = 0; i < axisRotating.length; i++) {
+			if(!axisRotating[i]) {
+				if(axisA < 0) {
+					axisA = i;
+				} else {
+					axisB = i;
+				}
+			}
+		}
+		double oldA = vals[axisA];
+		double oldB = vals[axisB];
+		set(axisA, Math.cos(rot) * oldA - Math.sin(rot) * oldB);
+		set(axisB, Math.cos(rot) * oldB + Math.sin(rot) * oldA);
+		return this;
+	}
+
+	/**
 	 * clamps the dimensions of this Point to the given minimum and maximum values,
 	 * setting each dimension to the value of min or max, if it's below min or above max
 	 * respectively, then returns this Point.

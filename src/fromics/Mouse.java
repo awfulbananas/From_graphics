@@ -30,6 +30,14 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 		}
 	}
 
+	public Point getGlobalMouseLoc() {
+		try {
+			return new Point(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y);
+		} catch(IllegalComponentStateException e) {
+			return new Point();
+		}
+	}
+
 	public boolean getMouseButton(int i) {
 		return codes.contains(i);
 	}
