@@ -72,6 +72,23 @@ public class Frindow extends Panel {
         }  
 	}
 
+	/**
+	 * a component to fix a minor bug where the frame snapping to the edge of the screen would sometimes fail to resize the Frindow correctly
+	 */
+	private class FixResizeComponent extends ComponentAdapter {
+		@Override
+		public void componentResized(ComponentEvent e) {
+			new Thread(() -> {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+                setBounds(getX(), getY(), frame.getWidth(), frame.getHeight());
+			}).start();
+		}
+	}
+
 
 	/**
 	 * returns the BufferedImage color type being used to draw frames
@@ -108,6 +125,7 @@ public class Frindow extends Panel {
 		addKeyListener(keys);
 		addMouseListener(mouse);
 		addMouseWheelListener(mouse);
+		frame.addComponentListener(new FixResizeComponent());
 		setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		frame.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		setVisible(false);
@@ -116,6 +134,10 @@ public class Frindow extends Panel {
 		frame.setResizable(false);
 		frame.setFocusable(true);
 		setFocusable(true);
+	}
+
+	public void setResizable(boolean resizable) {
+		frame.setResizable(resizable);
 	}
 
 	/**
