@@ -1,0 +1,193 @@
+package fromics.colliders;
+
+import fromics.Point;
+
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+
+//a class representing a Collidable with polygon collision
+public abstract class PolygonCollider extends Collidable {
+	private Point[] shape;
+	Point maxBounds;
+	Point minBounds;
+	protected double size;
+	
+	//constructs a new PolygonCollider at (x, y)
+	//make sure to call .init() at some point if using this constructor
+	protected PolygonCollider(double x, double y) {
+		super(x, y);
+	}
+	
+	//initializes this PolygonCollider with points (xVals, yVals), scaled by size
+	protected void init(double[] xVals, double[] yVals, double size) {
+		this.size = size;
+		shape = new Point[xVals.length];
+		for(int i = 0; i < xVals.length; i++) {
+			shape[i] = new Point(xVals[i] * size, yVals[i] * size);
+		}
+		calcBounds();
+	}
+
+	protected void init(Point[] locs, double size) {
+		this.size = size;
+		shape = new Point[locs.length];
+		for(int i = 0; i < locs.length; i++) shape[i] = locs[i].copy().mult(size);
+	}
+
+	private void calcBounds() {
+		maxBounds = shape[0].copy();
+		minBounds = shape[0].copy();
+		for(int i = 0; i < shape.length; i++) {
+			Point cur = shape[i];
+			if(Double.isNaN(cur.X()) || Double.isNaN(cur.Y())) {
+				continue;
+			}
+			if(cur.X() > maxBounds.X()) {
+				maxBounds.setX(cur.X());
+			}
+			if(cur.X() < minBounds.X()) {
+				minBounds.setX(cur.X());
+			}
+			if(cur.Y() > maxBounds.Y()) {
+				maxBounds.setY(cur.Y());
+			}
+			if(cur.Y() < minBounds.Y()) {
+				minBounds.setY(cur.Y());
+			}
+		}
+	}
+	
+	//constructs a new PolygonCollider at (x, y) with points (xVals, yVals) scaled by size
+	public PolygonCollider(double x, double y, double[] xVals, double[] yVals, double size) {
+		super(x, y);
+		init(xVals, yVals, size);
+	}
+	
+	//returns whether the shape of this polygon contains Point p
+	public boolean shapeContains(Point p) {
+		p = p.copy().rot(-ang);
+		int intersections = 0;
+		
+		Point prev = shape[shape.length - 1];
+		Point cur;
+		
+		for (int i = 0; i < shape.length; prev = cur, i++) {
+            cur = shape[i].copy();
+            
+            if(p.Y() > Math.max(cur.Y(), prev.Y())) {
+            	continue;
+            }
+            
+            double leftX;
+            double rightX;
+            if(cur.X() < prev.X()) {
+            	leftX = cur.X();
+            	rightX = prev.X();
+            } else {
+            	leftX = prev.X();
+            	rightX = cur.X();
+            }
+            
+            if(p.X() > rightX || p.X() < leftX || leftX == rightX) {
+            	continue;
+            }
+            
+            //the y value of the Point on the line between Points cur and prev with the same x-value
+            //as the Point being checked
+            double yVal = (p.X() - cur.X()) * ((cur.Y() - prev.Y()) / (cur.X() - prev.X())) + cur.Y();
+            
+            //if the Point being checked is under it's intersection with the line
+            if(p.Y() < yVal) {
+            	intersections++;
+            }
+        } 
+		
+        return (intersections & 1) != 0;
+	}
+	
+	//returns the collision type of this Collidable
+	//which is Collidable.TYPE_POLYGON
+	@Override
+	public int getCollisionType() {
+		return Collidable.TYPE_POLYGON;
+	}
+
+
+	
+	//returns whether this Collidable is colliding with Collidable other
+	@Override
+	public boolean check(Collidable other) {
+		return switch(other.getCollisionType()) {
+			case Collidable.TYPE_POINT -> shapeContains(other.copy().sub(this));
+			case Collidable.TYPE_POLYGON, Collidable.TYPE_RECT -> checkPolygon((PolygonCollider) other);
+			case Collidable.TYPE_OVAL -> checkCircle((CircleCollider) other);
+			default -> false;
+		};
+	}
+
+	public boolean checkPolygon(PolygonCollider other) {
+		for (Point p : ((PolygonCollider) other).absPoints()) {
+			if (shapeContains(p.copy().sub(this))) return true;
+		}
+		for (Point p : this.absPoints()) {
+			if (((PolygonCollider) other).shapeContains(p.copy().sub(other))) return true;
+		}
+		return false;
+	}
+
+	public boolean checkCircle(CircleCollider other) {
+		double rad = ((CircleCollider) other).getRadius();
+		Point relLoc = other.copy().sub(this);
+		//for each consecutive pair of points in the collision box, compare the line they make
+		//with the line the circle collider makes with the center of the shape
+		for (int i = 0; i < shape.length; i++) {
+			Point curr = shape[i];
+			Point relPoint = relLoc.copy().add(curr);
+			//is the point inside the circle
+			if (relPoint.sMag() < rad * rad) return true;
+			Point next = shape[(i + 1) % shape.length];
+			Point relNext = relLoc.copy().add(next);
+			double pointSlope = (curr.Y() - next.Y()) / (curr.X() - next.X());
+			//this gets the x and y values of the closest point of the line to the center of the circle, relative to the circle
+			//source:just trust the algebra lol
+			double xIntersection = (relPoint.Y() * pointSlope - relPoint.X() * pointSlope * pointSlope) / (-1.0 - pointSlope * pointSlope);
+			double yIntersection = -xIntersection / pointSlope;
+			double minX;
+			double maxX;
+
+			if (relPoint.X() < relNext.X()) {
+				minX = relPoint.X();
+				maxX = relNext.X();
+			} else {
+				minX = relNext.X();
+				maxX = relPoint.X();
+			}
+			//if the place where the lines intersect isn't between the points, they're not colliding
+			double distSqrd = Math.pow(xIntersection, 2) + Math.pow(yIntersection, 2);
+			if (xIntersection >= minX && xIntersection <= maxX && distSqrd > rad * rad) return true;
+		}
+		return false;
+	}
+	
+	//returns the Points of this PolygonCollider in world space
+	public Point[] absPoints() {
+		Point[] absPoints = new Point[shape.length];
+		for(int i = 0; i < shape.length; i++) {
+			absPoints[i] = shape[i].copy().rot(ang).add(this);
+		}
+		return absPoints;
+	}
+	
+	//draw this PolygonCollider, draw the collision polygon by default
+	@Override
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
+		drawCollider(g, xOff, yOff, angOff);
+	}
+	
+	//draws the Collider of this PolygonCollider using Graphics g
+	protected void drawCollider(Graphics g, double xOff, double yOff, double angOff) {
+		drawPoints(g, xOff + X(), yOff + Y(), angOff, 1, shape);
+	}
+
+}
+ 

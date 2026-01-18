@@ -37,18 +37,38 @@ public class Texture extends Linkable{
 	protected Texture() {
 		super(0, 0);
 	}
+
+	public Texture copy() {
+		return new Texture(img, size);
+	}
+
+	public double getSize() {
+		return size;
+	}
+
+	public void setSize(double s) {
+		this.size = s;
+	}
 	
 	//draws this texture using Graphics g, and the given x, y, and angle offsets
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		double totAng = (angOff + ang);
 		//if there's no rotation, don't do the rotation algorithm
 		if(totAng == 0) {
-			drawImg(g, img, xOff, yOff);
+			drawImg(g, this.img, xOff, yOff);
 		}
-		BufferedImage rotated = getRotatedImage(img, totAng);
+		BufferedImage rotated = getRotatedImage(this.img, totAng);
 		//draw the rotated image
 		drawImg(g, rotated, xOff, yOff);
+	}
+
+	public double getImgWidth() {
+		return img.getWidth() * size;
+	}
+
+	public double getImgHeight() {
+		return img.getHeight() * size;
 	}
 	
 	//returns a rotated version of the given BufferedImage using the given angle

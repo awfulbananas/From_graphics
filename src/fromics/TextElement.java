@@ -1,6 +1,7 @@
 package fromics;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -25,7 +26,7 @@ public class TextElement extends Linkable {
 		
 		//draws this TextLine using the given Graphics and x and y offsets
 		@Override
-		protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+		protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 			g.setFont(f);
 			g.drawString(text, (int)(xOff + X()), (int)(yOff + Y()));
 		}
@@ -84,6 +85,6 @@ public class TextElement extends Linkable {
 	
 	//draws this TextElement to the screen, empty because all of the visuals are from the TextLines
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {}
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {}
 
 }

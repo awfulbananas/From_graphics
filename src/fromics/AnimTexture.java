@@ -26,7 +26,7 @@ public class AnimTexture extends Texture {
 	//updates this animTexture, decrementing the timer and changing the texture
 	//and resetting the timer if it reaches zero
 	public boolean update() {
-		if((updateTimer -= dt()) == 0) {
+		if((updateTimer -= dt()) <= 0) {
 			updateTimer = updateTime;
 			imgIndex = (imgIndex + 1) % imgs.length;
 			img = imgs[imgIndex];

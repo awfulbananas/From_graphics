@@ -1,7 +1,11 @@
 package fromics;
 
+import fromics.events.Event;
+
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,183 +13,362 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-//a class representing an object with a location and angle in space, usually relative to a parent Linkable, with the ability to be drawn on screen
-//with the exception of Background objects, Linkable objects should always be passed as the argument of .link() or .linkE() to another Linkable before use
-//the z-value can optionally be used for drawing order if linked is sorted
-public abstract class Linkable extends Point implements Comparable<Linkable> {
-	//the angle of this Linkable relative to its parent
+/*TODO: * add an "IOEvent" class to unify MouseEvent and KeyEvent
+		* also unify KeypressFunction and MouseEventFunction while doing above
+		* make said functions register using a name/id so I can un-register them even without a direct object reference
+		* consider adding an alternate system where events are sent to methods in linkables/backgrounds instead of them registering events
+		*
+		* 3d stuff:
+			* custom Graphics class
+			* projection
+			* texture mapping
+			* rendering
+			* add multiple options
+			* allow 2d & 3d simultaneously
+ */
+
+/**
+ * Linkable is a class which represents an object in the hierarchy of a program, with a position, rotation, and scale
+ * relative to its parent. Linkables each have one parent and any number of children, and can represent anything in a program;
+ * for example in a drawing program, you might have a Background with the children DrawFrame and Menu, with Menu having
+ * further children itself.
+ * Linkable extends Point, and the location of that Point represents the location of this Linkable relative to it's parent
+ * @author awfulbananas
+ */
+public abstract class Linkable extends Point {
+	/**
+	 * ang represents the angle of this Linkable relative to its parent
+	 */
 	protected double ang;
-	//the children of this Linkable, with locations relative to this one,
-	//which are drawn after the parent
+	/**
+	 * scale represents the scale of this Linkable relative to its parent.
+	 * this isn't often used, and things like PolygonCollider don't currently take this into account
+	 */
+	protected Point scale;
+	/**
+	 * the children of this Linkable
+	 */
 	protected List<Linkable> linked;
-	//the parent of this Linkable, null if it has none
+	/**
+	 * the parent of this Linkable, or null if it has none
+	 */
 	protected Linkable parent;
-	//whether this Linkable is updating, used to manage
-	//when new Linkables are Linked
+	/**
+	 * whether this Linkable is currently updating, which is used to manage when new Linkables are linked to this one
+	 */
 	protected boolean updating;
-	//only used if a child tries to link a new Linkable while this one is updating
+	/**
+	 * the queue of Linkables to link to this Linkable after this Linkable and it's children finish updating
+	 */
 	protected Queue<Linkable> linkQueue;
-	//only used if a child tries to unlink a Linkable while this one is updating
+	/**
+	 * the queue of Linkables to unlink from this Linkable after this Linkable and it's children finish updating
+	 */
 	protected Queue<Linkable> unlinkQueue;
-	//a Set containing all of the keyboard key currently pressed
-	private Set<Integer> keysPressed;
-	//the default color for this Linkable to be drawn as
+	/**
+	 * a set containing all the currently pressed keys, following the KeyEvent constants
+	 */
+	protected Set<Integer> keysPressed;
+	/**
+	 * the default color for this Linkable to be drawn as.
+	 */
 	private Color color;
-	//whether this Linkable is fading in after being linked
-	private boolean fadingIn;
-	//whether this Linkable is fading out before being unlinked
-	private boolean fadingOut;
-	//the amount of frames left in the fade when fading in or out
-	private double fadeTimer;
-	//the total amount of frames in a fade when fading in or out
-	private double initialFadeTime;
-	
-	//constructs a new Linkable at (x, y) in 2d space
+	/**
+	 * whether this Linkable has been linked, used to only execute onFirstLink() once
+	 */
+	protected boolean hasLinked;
+
+	/**
+	 * constructs a new Linkable at (x, Y) in 2d
+	 * @param x the x location to construct this Linkable at
+	 * @param y the y location to construct this Linkable at
+	 */
 	public Linkable(double x, double y) {
 		super(x, y);
 		init();
 	}
-	
-	//constructs a new Linkable at (x, y, z) in 3d space
+
+	/**
+	 * constructs a new Linkable at (x, y, z) in 2d
+	 * @param x the x location to construct this Linkable at
+	 * @param y the y location to construct this Linkable at
+	 * @param z the x location to construct this Linkable at
+	 */
 	public Linkable(double x, double y, double z) {
 		super(x, y, z);
 		init();
 	}
-	
-	//sets the default drawing color of this Linkable
+
+	/**
+	 * sets the default Color for this Linkable to be drawn in
+	 * @param c the color to set the default to
+	 */
 	public void setColor(Color c) {
 		this.color = c;
 	}
-	
-	//returns the current default drawing color of this Linkable
+
+	/**
+	 * returns the current default color this Linkable is being drawn with
+	 * @return the color this Linkable is being drawn with by default
+	 */
 	public Color getColor() {
 		return this.color;
 	}
-	
-	//initializes various values used by this Linkable
+
+	/**
+	 * initializes a bunch of variables, this is only used in constructors for convenience
+	 */
 	private void init() {
-		updating = false;
+		updating = true;
+		hasLinked = false;
 		parent = null;
 		linkQueue = new LinkedList<>();
 		unlinkQueue = new LinkedList<>();
 		linked = new LinkedList<>();
 		ang = 0;
+		scale = new Point(dims());
+		for(int i = 0; i < dims(); i++) scale.set(i, 1);
 		color = Color.WHITE;
 	}
-	
-	//called directly after this Linkable is linked to another Linkable
+
+	/**
+	 * returns the mouse object of the associated with the Frindow of the Manager,
+	 * or throws an IllegalStateException if the chain of parents doesn't reach a Manager
+	 * @return the Mouse object associated with the current Frindow
+	 */
+	protected Mouse getMouse() {
+		try {
+			return parent.getMouse();
+		} catch(NullPointerException e) {
+			throw new IllegalStateException("this Linkable has no parent to get Mouse from");
+		}
+	}
+
+	/**
+	 * this is called directly before a Linkable is unlinked from another Linkable.
+	 * this has not default functionality, but it can be useful for removing MouseEventFunctions
+	 * and KeypressFunctions when a Linkable should no longer receive that input, and for otherwise
+	 * preventing memory leaks where relevant
+	 */
+	protected void beforeUnlink() {}
+
+	/**
+	 * this is called whenever this Linkable is linked to another Linkable
+	 * it has no functionality on its own, and it's there to be extended if needed
+	 */
 	protected void onLink() {}
-	
-	//sets the angle of this Linkable
+
+	/**
+	 * called when a Linkable is linked for the first time, is calls onFirstLink on itself
+	 * and all of its children
+	 */
+	private void onFirstLinks() {
+		onFirstLink();
+		hasLinked = true;
+		for(int i = 0; i < linked.size(); i++) {
+			linked.get(i).onFirstLinks();
+		}
+	}
+
+	/**
+	 * called after this Linkable is linked for the first time, this has no functionality
+	 * and is meant to be extended if needed
+	 */
+	protected void onFirstLink() {}
+
+	/**
+	 * sets the angle of this Linkable relative to its parent
+	 * @param ang the angle to set this Linkable to relative to its parent
+	 */
 	public void setAng(double ang) {
 		this.ang = ang;
 	}
-	
-	//links this Linkable to the given parent, and causes it to visually fade in for
-	//fadeTime frames
-	public void fadeIn(Linkable parent, double fadeTimeSeconds) {
-		parent.link(this);
-		fadingIn = true;
-		fadeTimer = fadeTimeSeconds;
-		initialFadeTime = fadeTimeSeconds;
-	}
-	
-	//links this Linkable to the given parent, and causes it to visually fade in for
-	//fadeTime frames
-	public void fadeOut(double fadeTimeSeconds) {
-		fadingOut = true;
-		fadeTimer = fadeTimeSeconds;
-		initialFadeTime = fadeTimeSeconds;
-	}
-	
-	//updates this Linkable and all of it's children
+
+	/**
+	 * updates this Linkable and all of its children.
+	 * while this method is public, you generally shouldn't call this in your
+	 * own code unless you have a very specific reason to do so, or are overriding this method.
+	 * @return whether this Linkable should be unlinked from its parent
+	 */
 	public synchronized boolean updateAll() {
 		updating = true;
 		Iterator<Linkable> lItr = linked.iterator();
 		while(lItr.hasNext()) {
 			Linkable next = lItr.next();
-			if(next.update()) lItr.remove();
-			next.updateAll();
+			if(next.updateAll()) lItr.remove();
 		}
 		boolean updateVal = update();
-		if(fadingIn || fadingOut) {
-			fadeTimer = fadeTimer - 0.000001 * dt();
-			if(fadeTimer < 0) {
-				fadingIn = false;
-			}
-		}
 		updating = false;
-		if(fadingOut && fadeTimer <= 0) {
-			parent.unlink(this);
-			fadingOut = false;
-		}
-		if(!linkQueue.isEmpty()) {
+		while(!linkQueue.isEmpty()) {
 			link(linkQueue.remove());
 		}
-		if(!unlinkQueue.isEmpty()) {
+		while(!unlinkQueue.isEmpty()) {
 			unlink(unlinkQueue.remove());
 		}
 		return updateVal;
 	}
-	
-	//optional method, if implemented, should run any update functionality, 
-	//and should return whether it should be unlinked from it's parent
-	public boolean update() {return false;}
-	
-	//adds a consumer to be called whenever a key is pressed which is passed
-	//a KeyEvent corresponding to the key press
+
+	/**
+	 * called every tick of the update loop, and returns whether this Linkable should be unlinked from its parent
+	 * this method is meant to be extended is needed
+	 * @return whether this Linkable should be unlinked from its parent
+	 */
+	public synchronized boolean update() {return false;}
+
+	/**
+	 * adds a new KeypressFunction to the Keys object associated with the current Frindow is this Linkable has a parent.
+	 * a KeypressFunction is a Consumer<<KeyEvent>> which is usually defined inline as a functional interface, and performs
+	 * some functionality when a key is pressed
+	 * you should probably be careful to not add KeypressFunctions for any Linkables which won't stay around too long, or
+	 * to add KeypressFunctions periodically when a given Linkable will be removed, since they will technically store a
+	 * reference to where they were defined, potentially causing a memory leak.
+	 * (I'll add a removeKeystrokeFunction at some point to fix this)
+	 * @param func the KeypressFunction to add to Keys
+	 */
 	protected void addKeystrokeFunction(KeypressFunction func) {
 		parent.addKeystrokeFunction(func);
 	}
-	
-	//returns a Point representing the lower-right corner of the bounds of the screen (lower-right bc. it's positive x & y), 
-	//these bounds aren't enforced by default, but this method can be used for something like screen-looping
+
+	/**
+	 * Removes the given KeypressFunction from the associated Frindow, undoing a call of addKeystrokeFunction.
+	 * If many Linkables with KeystrokeFunctions are being unlinked, they should use this to prevent a
+	 * memory leak (the reference to the KeypressFunction in Frindow likely prevents the garbage collector
+	 * from disposing of an otherwise unused Linkable, potentially causing a memory leak and/or bugs)
+	 * @param func the KeypressFunction to remove
+	 */
+	public void removeKeystrokeFunction(KeypressFunction func) {
+		parent.removeKeystrokeFunction(func);
+	}
+
+	/**
+	 * adds a new MouseEventFunction to the Mouse object associated with the current Frindow if this Linkable has a parent.
+	 * a MouseEventFunction is a Consumer<<MouseEvent>> which is usually defined inline as a functional interface, and performs
+	 * some functionality whenever a MouseEvent is detected. notably, this triggers for every MouseEvent, unlike a KeypressFunction
+	 * which only triggers when a key is pressed, so you usually need to add some more conditions to distinguish between event types.
+	 * this has similar things you should be careful about as addKeystrokeFunction, to see that method for mroe info
+	 * @param func the MouseEventFunction to add to Mouse
+	 */
+	public void addMouseEventFunction(MouseEventFunction func) {
+		parent.addMouseEventFunction(func);
+	}
+
+	/**
+	 * Removes the given MouseEventFunction from the associated Frindow, undoing a call of addMouseEventFunction.
+	 * Similar to KeypressFunctions, if many Linkables with MouseEventFunctions are being unlinked, they should use this to prevent a
+	 * memory leak (the reference to the MouseEventFunction in Frindow likely prevents the garbage collector
+	 * from disposing of an otherwise unused Linkable, potentially causing a memory leak and/or bugs)
+	 * @param func the MouseEventFunction to remove
+	 */
+	public void removeMouseEventFunction(MouseEventFunction func) {
+		parent.removeMouseEventFunction(func);
+	}
+
+	/**
+	 * returns the position of the mouse in the given MouseEvent as a Point
+	 * @param e the MouseEvent to get the position of
+	 * @return the position of the given MouseEvent
+	 */
+	public Point getMousePos(MouseEvent e) {
+		return new Point(e.getX(), e.getY());
+	}
+
+	/**
+	 * Returns the Frindow (this libraries window object) associated with this Linkable.
+	 * will error if this is not linked
+	 * @return the Frindow associated with this Linkable
+	 */
+	public Frindow getFrindow() {
+		return parent.getFrindow();
+	}
+
+	/**
+	 * adds the given Event to the event queue, which will be executed when all currently running Events
+	 * and previously queued Events have finished.
+	 * only works if this Linkable has a parent.
+	 * @param e the Event to add to the event queue
+	 */
+	public void queueEvent(Event e) {
+		parent.queueEvent(e);
+	}
+
+	/**
+	 * add the given Event to the currently running Events, starting its execution immediately
+	 * @param e the Event to start
+	 */
+	public void addEvent(Event e) {
+		parent.addEvent(e);
+	}
+
+	/**
+	 * returns a Point representing the maximum bounds of the current Frindow, where the x value of the Point
+	 * is the max x and the y value of the Point is the max y
+	 * @return the maximum bounds of the current Frindow
+	 */
 	public Point getMaxBounds() {
 		return parent.getMaxBounds();
 	}
-	
-	//like getMaxBounds(), but returns the point representing the upper left corner of the bounds of the screen
+
+	/**
+	 * returns a Point representing the minimum bounds of the current Frindow.
+	 * unless overridden in a Linkable or one of its parents, this will always be (0, 0)
+	 * @return the minimum bounds of the current Frindow
+	 */
 	public Point getMinBounds() {
 		return parent.getMinBounds();
 	}
-	
-	//returns the current width of the window
+
+	/**
+	 * returns the current width of the window
+	 * @return the width of the window
+	 */
 	public int getScreenWidth() {
 		return parent.getScreenWidth();
 	}
-	
-	//returns the current height of the window
+
+	/**
+	 * returns the current height of the window
+	 * @return the height of the window
+	 */
 	public int getScreenHeight() {
 		return parent.getScreenHeight();
 	}
-	
-	//returns the location of this Linkable in global space
-	public Point gatAbsLoc() {
+
+	/**
+	 * returns the location of this Linkable in global space (still relative to the window)
+	 * @return the global location of this Linkable
+	 */
+	public Point getAbsLoc() {
 		return new Point(getAbsX(), getAbsY());
 	}
-	
-	//returns the z-value of this Linkable if it has one, or 0 otherwise
-	public double getZ() {return get(2);}
-	
-	//returns the x value of this Linkable in global space
+
+	/**
+	 * returns the x value of this Linkabls in global space
+	 * @return the global x location of this Linkable
+	 */
 	public double getAbsX() {
 		if(parent == null) {
 			return X();
 		} else {
-			return (Math.cos(parent.ang) * X()) + (Math.sin(parent.ang) * Y()) + parent.getAbsX();
+			return ((Math.cos(parent.ang) * X()) - (Math.sin(parent.ang) * Y()))*getAbsScale().X() + parent.getAbsX();
 		}
 	}
-	
-	//returns the y value of this Linkable in global space
+
+	/**
+	 * returns the y value of this Linkable in global space
+	 * @return the global y location of this Linkable
+	 */
 	public double getAbsY() {
 		if(parent == null) {
 			return Y();
 		} else {
-			return (Math.cos(parent.ang) * Y()) + (Math.sin(parent.ang) * X()) + parent.getAbsY();
+			return ((Math.cos(parent.ang) * Y()) - (Math.sin(parent.ang) * X()))*getAbsScale().X() + parent.getAbsY();
 		}
 	}
-	
-	//returns the angle of this Linkable in global space
+
+	/**
+	 * returns the angle of this Linkable in global space
+	 * @return the absolute angle of this Linkable
+	 */
 	public double getAbsAng() {
 		if(parent == null) {
 			return ang;
@@ -193,185 +376,278 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			return ang + parent.getAbsAng();
 		}
 	}
-	
-	//sets the set used to detect key presses
-	//maybe don't use this one unless you need to
+
+	/**
+	 * returns the scale of this Linkable
+	 * @return the scale of this Linkable
+	 */
+	public Point getScale() {
+		return scale.copy();
+	}
+
+	/**
+	 * returns the absolute scale if this Linkable
+	 * @return the absolute scale of this Linkable
+	 */
+	public Point getAbsScale() {
+		if(parent == null) {
+			return scale.copy();
+		} else {
+			Point pScale = parent.getAbsScale();
+			return new Point(scale.X() * pScale.X(), scale.Y() * pScale.Y());
+		}
+	}
+
+	/**
+	 * sets this Linkables x and y to the current center of the screen
+	 */
+	public void goToCenterScreen() {
+		Point bounds = getMaxBounds();
+		setX(bounds.X() / 2);
+		setY(bounds.Y() / 2);
+	}
+
+	/**
+	 * sets the KeysPressed set to the given set
+	 * don't call this in your own code unless you have a specific reason to
+	 * @param keysPressed the set to set KeysPressed to
+	 */
 	protected void setKeysSet(Set<Integer> keysPressed) {
 		this.keysPressed = keysPressed;
 	}
-	
-	//links a Linkable to this one, so that it follows it,
-	//every Linkable except a Background should be linked to another
+
+	/**
+	 * if this Linkable is updating, adds the given Linkable to the linkQueue, otherwise links the given
+	 * Linkable to this one, calling onFirstLinks
+	 * @param child the Linkable to link to this one
+	 */
 	public void link(Linkable child) {
-		child.keysPressed = this.keysPressed;
-		if(updating) {
-			linkQueue.add(child);
-		} else {
-			child.parent = this;
-			linked.add(child);
-			linked.sort(null);
-			child.onLink();
+		if(!linked.contains(child)) {
+			if (updating) {
+				linkQueue.add(child);
+			} else {
+				if(child.parent != null) {
+					child.parent.linked.remove(child);
+				}
+				child.keysPressed = this.keysPressed;
+				child.parent = this;
+				linked.add(child);
+				child.onLink();
+				if (!child.hasLinked && this.hasLinked) {
+					child.onFirstLinks();
+					child.resolvePreLinks();
+				}
+			}
 		}
 	}
-	
-	//unlinks a Linkable from this one, usually called if a Linkable should stop being drawn and updated
+
+	protected void resolvePreLinks() {
+		updating = false;
+		while(!linkQueue.isEmpty()) {
+			link(linkQueue.remove());
+		}
+	}
+
+	/**
+	 * if this Linkable is updating, adds the given Linkable to the unlinkQueue, otherwise
+	 * unlinks the given Linkable from this one
+	 * @param child the Linkable to unlink from this one
+	 */
 	public void unlink(Linkable child) {
 		if(updating) {
 			unlinkQueue.add(child);
 		} else {
+			child.beforeUnlink();
 			child.parent = null;
 			linked.remove(child);
 		}
 	}
-	
-	//compares the z values of two Linkables, altering them to resolve any conflicts,
-	//so that sorting a list will order then based on drawing order
-	public int compareTo(Linkable o) {
-		switch((int)Math.copySign(1, Double.compare(getZ(), o.getZ()))) {
-			case -1:
-				return -1;
-			case 1:
-				return 1;
-			case 0:
-				if(vals.length > 2) {
-					add(new Point(0, 0, 0.001));
-				} else {
-					double[] oldVals = vals;
-					vals = new double[3];
-					vals[0] = oldVals[0];
-					vals[1] = oldVals[1];
-					vals[2] = 0.001;
-				}
-				return 1;
-			default:
-				System.out.println("problem");
-				return 1;
-		}
-		
-	}
-	
-	//returns whether the given key is presses
+
+	/**
+	 * returns whether the given key is pressed, using the KeyEvent constants
+	 * @param key the key code to get whether the associated key is pressed
+	 * @return whether the given key is pressed
+	 */
 	protected boolean getKey(int key) {
 		return keysPressed.contains(key);
 	}
-	
-	//returns the number of children of this Linkable
+
+	/**
+	 * returns the number of children of this Linkable
+	 * @return the number of children of this Linkable
+	 */
 	public int numLinked() {
 		return linked.size();
 	}
-	
-	//returns the angle of this Linkable relative to it's parent
-	public double getRot() {return ang;}
-	
-	//returns a list of all children of this Linkable
+
+	/**
+	 * returns the angle of this Linkable relative to its parent
+	 * @return the angle of this Linkable
+	 */
+	public double getAng() {return ang;}
+
+	/**
+	 * returns the list of children of this Linkable
+	 * @return the list of children of this Linkable
+	 */
 	public List<Linkable> getLinked() {return linked;}
-	
-	//returns the parent of this Linkable
+
+	/**
+	 * returns the parent of this Linkable
+	 * @return the parent of this Linkable
+	 */
 	public Linkable parent() {return parent;}
-	
-	//returns whether the current color model being used has an
-	//alpha component
+
+	/**
+	 * returns whether the current window has an alpha channel when drawing
+	 * @return whether the current window has an alpha channel
+	 */
 	protected boolean hasAlpha() {
 		return parent.hasAlpha();
 	}
-	
-	//sets the drawing color to the default drawing color for this Linkable,
-	//accounting for any fade currently in effect
-	protected void setDefColor(Graphics g) {
-		if(!(fadingIn || fadingOut)) {
-			g.setColor(color);
-		} else {
-			double fadeMult = ((double)fadeTimer / (double)initialFadeTime);
-			if(fadingIn) {
-				fadeMult = 1.0 - fadeMult;
-			}
-			float[] hsbComps = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-			hsbComps[2] *= fadeMult;
-			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
-		}
-		if(parent != null && (parent.fadingIn || parent.fadingOut)) {
-			double fadeMult = ((double)parent.fadeTimer / (double)parent.initialFadeTime);
-			if(parent.fadingIn) {
-				fadeMult = 1.0 - fadeMult;
-			}
-			Color currentColor = g.getColor();
-			float[] hsbComps = Color.RGBtoHSB(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), null);
-			hsbComps[2] *= fadeMult;
-			g.setColor(Color.getHSBColor(hsbComps[0], hsbComps[1], hsbComps[2]));
-		}
+
+	/**
+	 * sets the color of the given Graphics to the default color of this Linkable
+	 * @param g the Graphics object to set the color of
+	 */
+	protected void setToDefColor(Graphics g) {
+		g.setColor(color);
 	}
-	
-	//draws this Linkable, and all its children relative to it's parent
-	public void drawAll(Graphics g) {
-		setDefColor(g);
+
+	/**
+	 * draws this Linkable and all of its children using the given Graphics object and image
+	 * @param g the Graphics object to draw with
+	 * @param img the image to draw on
+	 */
+	public void drawAll(Graphics g, BufferedImage img) {
+		setToDefColor(g);
 		try {
-			draw(g, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
+			draw(g, img, parent.getAbsX(), parent.getAbsY(), parent.getAbsAng());
 		} catch(NullPointerException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			return;
 		}
+
 		try {
-			for(Object l : linked) {
-				((Linkable)l).drawAll(g);
+			for(int i = 0; i < linked.size(); i++) {
+				linked.get(i).drawAll(g, img);
 			}
 		} catch(ConcurrentModificationException e) {
-			
+			e.printStackTrace();
 		}
 	}
-	
-	//returns an Iterator for all of the children of this Linkable
+
+	/**
+	 * returns an iterator over all the children of this Linkable
+	 * @return an iterator over the children of this Linkable
+	 */
 	public Iterator<Linkable> getLinkedIterator() {
 		return linked.iterator();
 	}
-	
-	//returns the change in time between the previous update and this one
-	//in thousands of nanoseconds
+
+	/**
+	 * returns the amount of time between this update and the previous one in milliseconds
+	 * @return the dt in milliseconds from the last update
+	 */
 	public int dt() {
 		return parent.dt();
 	}
-	
-	//the function which draws this Linkable, given a total x location, y location and angle
-	protected abstract void draw(Graphics g, double xOff, double yOff, double angOff);
-	
-	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
-	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
-	//doesn't work right now
+
+	/**
+	 * returns the amount of time between this update and the previous one in nanoseconds
+	 * this is not the default, mostly because multiplying everything by 1000000 can be annoying,
+	 * so milliseconds are more convenient
+	 * @return the dt in nanoseconds from the last update
+	 */
+	public long dtNanos() {
+		return parent.dtNanos();
+	}
+
+	/**
+	 * draw this Linkable using hte given Graphics and image, as well as the given offsets
+	 * this should be overridden in most Linkables to draw it to the screen
+	 * @param g the Graphics to draw with
+	 * @param img the image to draw on
+	 * @param xOff the x offset of this Linkable
+	 * @param yOff the y offset of this Linkable
+	 * @param angOff the angle offset of this Linkable
+	 */
+	protected abstract void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff);
+
+	/**
+	 * draws the given points as a closed polygon with the points (relativeX, relativeY) rotated by
+	 * totalAng and scaled by size offset by the point (totalX, totalY) using the given Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param totalX the x offset to draw the Points with
+	 * @param totalY the y offset to draw th Points with
+	 * @param totalAng the angle to rotate the polygon by around the x/y offsets
+	 * @param size the size to scale the polygon by
+	 * @param relativeX the x location to draw relative to
+	 * @param relativeY the y location to draw relative to
+	 */
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, double[] relativeX, double[] relativeY) {
 		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
-		
-		for(int i = 0; i < relativeX.length; i++) {
-			xLocs[i] = (int)((relativeX[i] * size) + totalX);
-			yLocs[i] = (int)((relativeY[i] * size) + totalX);
-		}
-		
-		g.drawPolygon(xLocs, yLocs, xLocs.length);
-	}
-	
-	//draws a polygon from the points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
-	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
-	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, int[] relativeX, int[] relativeY) {
-		int[] xLocs = new int[relativeX.length];
-		int[] yLocs = new int[relativeX.length];
-		
+
 		Point newXLoc = (new Point(1, 0)).rot(totalAng);
 		Point newYLoc = newXLoc.getPerpendicular();
-		
+
 		for(int i = 0; i < relativeX.length; i++) {
 			xLocs[i] = (int)((newXLoc.X() * relativeX[i] + newYLoc.X() * relativeY[i]) * size + totalX);
-			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalX);
+			yLocs[i] = (int)((newXLoc.Y() * relativeX[i] + newYLoc.Y() * relativeY[i]) * size + totalY);
 		}
-		
+
 		g.drawPolygon(xLocs, yLocs, xLocs.length);
 	}
-	
-	//draws a polygon from the Points points, with location offset in the x-axis by totalX, and in the y-axis by totalY/
-	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
-	//closed determines whether the the first and last Points should be connected
+
+	/**
+	 * draws the given Points as a closed polygon using the give Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param pts the Points to draw
+	 */
+	protected static void simpleDrawPoints(Graphics g, Point[] pts) {
+		simpleDrawPoints(g, pts, true);
+	}
+
+	/**
+	 * draws the given Points using the given Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param pts the Points to draw
+	 * @param closed whether to close the drawn shape
+	 */
+	protected static void simpleDrawPoints(Graphics g, Point[] pts, boolean closed) {
+		int[] xLocs = new int[pts.length];
+		int[] yLocs = new int[pts.length];
+
+		for(int i = 0; i < pts.length; i++) {
+			xLocs[i] = (int)pts[i].X();
+			yLocs[i] = (int)pts[i].Y();
+		}
+
+		if(closed) {
+			g.drawPolygon(xLocs, yLocs, xLocs.length);
+		} else {
+			for(int i = 0; i < xLocs.length - 1; i++) {
+				g.drawLine(xLocs[i], yLocs[i], xLocs[i + 1], yLocs[i + 1]);
+			}
+		}
+	}
+
+	/**
+	 * draws the given points (relativeX, relativeY) rotated by totalAng and
+	 * scaled by size offset by the point (totalX, totalY) using the given Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param totalX the x offset to draw from
+	 * @param totalY the y offset to draw from
+	 * @param totalAng the angle to rotate the Points by
+	 * @param size the size to scale the points by
+	 * @param points the Points to draw
+	 * @param closed whether to close the drawn shape
+	 */
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		Point[] newPoints = new Point[points.length];
-		Point newXLoc = (new Point(-1, 0)).rot(totalAng);
+		Point newXLoc = (new Point(-1, 0)).rot(totalAng).mult(size);
 		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
 			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
@@ -392,8 +668,17 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 			}
 		}
 	}
-	
-	//closed determines whether the the first and last Points should be connected
+
+	/**
+	 * draws the given points as a filled closed polygon rotated by totalAng and
+	 * scaled by size offset by the point (totalX, totalY) using the given Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param totalX the x offset to draw from
+	 * @param totalY the y offset to draw from
+	 * @param totalAng the angle to rotate the Points by
+	 * @param size the size to scale the points by
+	 * @param points the Points to draw
+	 */
 	protected static void fillPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points) {
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];
@@ -405,8 +690,18 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		
 		g.fillPolygon(xLocs, yLocs, xLocs.length);
 	}
-	
-	//closed determines whether the the first and last Points should be connected
+
+	/**
+	 * draws the given points (xVals, yVals) as a closed polygon rotated by totalAng and
+	 * scaled by size offset by the point (totalX, totalY) using the given Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param totalX the x offset to draw from
+	 * @param totalY the y offset to draw from
+	 * @param totalAng the angle to rotate the Points by
+	 * @param size the size to scale the points by
+	 * @param xVals the x values of the points to draw
+	 * @param yVals the y values of the points to draw
+	 */
 	protected static void fillPoints(Graphics g, double totalX, double totalY, double totalAng, double size, double[] xVals, double[] yVals) {
 		int[] xLocs = new int[xVals.length];
 		int[] yLocs = new int[yVals.length];
@@ -418,21 +713,32 @@ public abstract class Linkable extends Point implements Comparable<Linkable> {
 		
 		g.fillPolygon(xLocs, yLocs, xLocs.length);
 	}
-	
-	//draws a polygon from points (relativeX, relativeY), with location offset in the x-axis by totalX, and in the y-axis by totalY/
-	//and rotated around the offset location by titalAng radians, scaled by size, using Graphics g
+
+	/**
+	 * draws the given points as a closed polygon rotated by totalAng and
+	 * scaled by size offset by the point (totalX, totalY) using the given Graphics object
+	 * @param g the Graphics object to draw with
+	 * @param totalX the x offset to draw from
+	 * @param totalY the y offset to draw from
+	 * @param totalAng the angle to rotate the Points by
+	 * @param size the size to scale the points by
+	 * @param points the Points to draw
+	 */
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points) {
 		drawPoints(g, totalX, totalY, totalAng, size, points, true);
 	}
-	
-	//should be used for looping around the edge of the screen, given a maxX and maxY value, 
-	//assuming the origin is in the center of the screen
+
+	/**
+	 * flips this Linkables x/y coordinate if it's absolute value is beyond the given bounds
+	 * @param maxX the x value to flip when moved past
+	 * @param maxY the y value to flip when moved past
+	 */
 	protected void loop(int maxX, int maxY) {
 		if(Math.abs(X()) > maxX) {
-			vals[0] *= -0.99;
+			vals[0] *= -1;
 		}
 		if(Math.abs(Y()) > maxY) {
-			vals[1] *= -0.99;
+			vals[1] *= -1;
 		}
 	}
 	

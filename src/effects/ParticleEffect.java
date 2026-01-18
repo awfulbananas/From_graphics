@@ -1,6 +1,7 @@
 package effects;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class ParticleEffect extends Linkable {
 	
 	//draws this ParticleEffect, with each particle being a pixel which fades over time
 	@Override
-	protected void draw(Graphics g, double xOff, double yOff, double angOff) {
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
 		for(Particle p : particles) {
 			g.setColor(p.getColor());
 			g.drawRect((int)(p.X() + xOff), (int)(p.Y() + yOff), 1, 1);
