@@ -22,6 +22,7 @@ public abstract class Screens extends Background{
      */
     public Screens() {
         super();
+        screen = -1;
     }
 
     /**
@@ -32,30 +33,32 @@ public abstract class Screens extends Background{
         return screens[screen];
     }
 
-    /**
-     * updates this Screens object and the selected screen
-     * @return whether this should be unlinked from its parent
-     */
-    @Override
-    public boolean updateAll() {
-        updating = true;
-        boolean updateVal = update();
-        screens[screen].updateAll();
-        if(screens[screen].nextScreen()) {
-            int nextScreen = screens[screen].getNextScreen();
-            nextScreen = nextScreen==-1?(screen+1)%screens.length:nextScreen;
-            screens[screen].close();
-           setScreen(nextScreen);
-        }
-        updating = false;
-        while(!linkQueue.isEmpty()) {
-            link(linkQueue.remove());
-        }
-        while(!unlinkQueue.isEmpty()) {
-            unlink(unlinkQueue.remove());
-        }
-        return updateVal;
-    }
+//    /**
+//     * updates this Screens object and the selected screen
+//     * @return whether this should be unlinked from its parent
+//     */
+//    @Override
+//    public boolean updateAll() {
+//        updating = true;
+//        boolean updateVal = update();
+//        if(screens.length == 0 || screens[screen] != null) {
+//            screens[screen].updateAll();
+//            if (screens[screen].nextScreen()) {
+//                int nextScreen = screens[screen].getNextScreen();
+//                nextScreen = nextScreen == -1 ? (screen + 1) % screens.length : nextScreen;
+//                screens[screen].close();
+//                setScreen(nextScreen);
+//            }
+//        }
+//        updating = false;
+//        while(!linkQueue.isEmpty()) {
+//            link(linkQueue.remove());
+//        }
+//        while(!unlinkQueue.isEmpty()) {
+//            unlink(unlinkQueue.remove());
+//        }
+//        return updateVal;
+//    }
 
     /**
      * sets the current screen to the given index, closing the previous screen
@@ -64,8 +67,9 @@ public abstract class Screens extends Background{
      */
     public void setScreen(int newScreen) {
         updating = true;
-        if(screens[screen] != null) {
+        if(screen >= 0 && screen < screens.length && screens[screen] != null) {
             screens[screen].close();
+            unlink(screens[screen]);
         }
         initScreen(newScreen);
         screen = newScreen;
@@ -82,14 +86,14 @@ public abstract class Screens extends Background{
      */
     protected abstract void initScreen(int n);
 
-    /**
-     * draws this Screens and the current screen
-     * @param g the Graphics object to draw with
-     * @param img the image to draw on
-     */
-    public void drawAll(Graphics g, BufferedImage img) {
-        draw(g, img, 0, 0, 0);
-        if(screens[screen] == null) return;
-        screens[screen].drawAll(g, img);
-    }
+//    /**
+//     * draws this Screens and the current screen
+//     * @param g the Graphics object to draw with
+//     * @param img the image to draw on
+//     */
+//    public void drawAll(Graphics g, BufferedImage img) {
+//        draw(g, img, 0, 0, 0);
+//        if(screens[screen] == null) return;
+//        screens[screen].drawAll(g, img);
+//    }
 }

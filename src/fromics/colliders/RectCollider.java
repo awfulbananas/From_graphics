@@ -2,7 +2,7 @@ package fromics.colliders;
 
 import fromics.Point;
 
-public abstract class RectCollider extends PolygonCollider{
+public class RectCollider extends PolygonCollider{
     private final double width, height;
 
     public RectCollider(double x, double y, double width, double height) {
@@ -18,8 +18,8 @@ public abstract class RectCollider extends PolygonCollider{
     }
 
     @Override
-    public int getCollisionType() {
-        return Collidable.TYPE_RECT;
+    public CollisionType getCollisionType() {
+        return CollisionType.RECT;
     }
 
     @Override
@@ -31,9 +31,9 @@ public abstract class RectCollider extends PolygonCollider{
     @Override
     public boolean check(Collidable other) {
         return switch(other.getCollisionType()) {
-            case Collidable.TYPE_POLYGON, TYPE_RECT -> checkPolygon((PolygonCollider) other);
-            case Collidable.TYPE_POINT -> shapeContains(other.copy().sub(this));
-            case Collidable.TYPE_OVAL -> super.check(other);
+            case POLYGON, RECT -> checkPolygon((PolygonCollider) other);
+            case POINT -> shapeContains(other.copy().sub(this));
+            case OVAL -> super.check(other);
             default -> false;
         };
     }

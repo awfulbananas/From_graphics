@@ -1,10 +1,6 @@
 package fromics;
 
-import java.awt.Graphics;
-import java.awt.Frame;
-import java.awt.GraphicsEnvironment;
-import java.awt.Panel;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
@@ -106,6 +102,12 @@ public class Frindow extends Panel {
 		mouse.process();
 	}
 
+	@Override
+	public void setSize(int width, int height) {
+		super.setSize(width, height);
+		frame.setSize(width, height);
+	}
+
 	/**
 	 * constructs a new Frindow with the given colorType for drawing frames,
 	 * initial width and height of the window, and window name
@@ -126,18 +128,22 @@ public class Frindow extends Panel {
 		addMouseListener(mouse);
 		addMouseWheelListener(mouse);
 		frame.addComponentListener(new FixResizeComponent());
-		setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
+		this.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		frame.setBounds(SCREEN_RECT.width / 2 - width / 2, SCREEN_RECT.height / 2 - height / 2, width, height);
 		setVisible(false);
 		frame.setVisible(false);
 		new WindowOperator(frame);
-		frame.setResizable(false);
+		setResizable(false);
 		frame.setFocusable(true);
 		setFocusable(true);
 	}
 
 	public void setResizable(boolean resizable) {
 		frame.setResizable(resizable);
+	}
+
+	public void setIcon(Image icon) {
+		frame.setIconImage(icon);
 	}
 
 	/**
@@ -209,6 +215,7 @@ public class Frindow extends Panel {
 	 */
 	@Override
 	public void paint(Graphics g) {
+		//setBounds(getX(), getY(), frame.getWidth(), frame.getHeight());
 		BufferedImage img = getNewFrameImg();
 		game.drawAll(img.getGraphics(), img);
 		while(contentBuffer.size() < targetFrameBufferSize) {
@@ -224,7 +231,7 @@ public class Frindow extends Panel {
 	 * @return the new BufferedImage to be added to the frame buffer
 	 */
 	public BufferedImage getNewFrameImg() {
-		BufferedImage next = new BufferedImage(getWidth(), getHeight(), colorType);
+		BufferedImage next = new BufferedImage(frame.getWidth(), frame.getHeight(), colorType);
 		contentBuffer.add(next);
 		return next;
 	}

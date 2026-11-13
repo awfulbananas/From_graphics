@@ -2,8 +2,10 @@ package fromics;
 
 import fromics.events.Event;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 
 /**
  * this class represents a Manager to handle running the application, getting values from the Frindow,
@@ -153,14 +155,20 @@ public abstract class Manager extends Screens {
 			boolean running = true;
 			RunUpdate r = this.new RunUpdate();
 			long time = System.nanoTime();
+			int timeOver = 0;
+			int targetTime = updateDelay * 1000000;
 			while(running) {
 				long newTime = System.nanoTime();
 				dt = (newTime - time);
 				r.run();
 				int elapsedTime = (int)(System.nanoTime() - newTime);
-				while(elapsedTime < updateDelay * 1000000 && updateDelay > 0) {
+				while(elapsedTime + timeOver < targetTime ) {
+                    try {
+                        Thread.sleep(0, 10);
+                    } catch (InterruptedException e) {}
 					elapsedTime = (int)(System.nanoTime() - newTime);
-				}
+                }
+				timeOver = elapsedTime - targetTime;
 				time = newTime;
 			}
 		});
@@ -172,6 +180,9 @@ public abstract class Manager extends Screens {
 				r.run();
 				int elapsedTime = (int)(System.nanoTime() - newTime);
 				while(elapsedTime < drawDelay * 1000000 && drawDelay > 0) {
+					try {
+						Thread.sleep(0, 10);
+					} catch (InterruptedException e) {}
 					elapsedTime = (int)(System.nanoTime() - newTime);
 				}
 			}
@@ -183,21 +194,20 @@ public abstract class Manager extends Screens {
 	public void startSynchronizedLoop() {
 		resolvePreLinks();
 		Thread runner = new Thread(() -> {
-			boolean running = true;
-			RunUpdate update = this.new RunUpdate();
-			RunDraw draw = this.new RunDraw();
 			long prevTime = System.nanoTime();
-			while(running) {
-				updateAll();
+			long timeOver = 0;
+			long updateTime = (drawDelay + updateDelay) * 1000000L;
+			while(!updateAll()) {
 				observer.syncDefPaint();
 				long newTime = System.nanoTime();
 				long elapsedTime = newTime - prevTime;
-				while(elapsedTime < (drawDelay + updateDelay) * 1000000L) {
+				while(elapsedTime + timeOver < updateTime) {
 					newTime = System.nanoTime();
 					elapsedTime = newTime - prevTime;
 				}
 				dt = elapsedTime;
 				prevTime = newTime;
+				timeOver = elapsedTime - updateTime;
 			}
 		});
 		runner.start();
@@ -233,6 +243,10 @@ public abstract class Manager extends Screens {
 	//returns the Mouse object for the current Frindow
 	public Mouse getMouse() {
 		return observer.getMouse();
+	}
+
+	public void setCursor(Cursor c) {
+		observer.setCursor(c);
 	}
 
 	//returns whether the Frindow this manager uses is displayed on uses a colour model with an alpha channel

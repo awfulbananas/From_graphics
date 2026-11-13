@@ -1,5 +1,7 @@
 package fromics.colliders;
 
+import fromics.Point;
+
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
@@ -16,8 +18,8 @@ public class CircleCollider extends Collidable {
 	
 	//returns the collision type for this Collidable, which is TYPE_OVAL
 	@Override
-	public int getCollisionType() {
-		return 1;
+	public CollisionType getCollisionType() {
+		return CollisionType.OVAL;
 	}
 	
 	//returns whether this Collidable is colliding with Collidable other
@@ -25,11 +27,11 @@ public class CircleCollider extends Collidable {
 	@Override
 	public boolean check(Collidable other) {
 		switch(other.getCollisionType()) {
-			case Collidable.TYPE_OVAL:
+			case OVAL:
 				return other.copy().sub(this).mag() < radius + ((CircleCollider)other).getRadius();
-			case Collidable.TYPE_POINT:
+			case POINT:
 				return other.copy().sub(this).mag() < radius;
-			case Collidable.TYPE_POLYGON:
+			case POLYGON, RECT:
 				return other.check(this);
 			default:
 				return false;
@@ -37,9 +39,18 @@ public class CircleCollider extends Collidable {
 		//TODO: add collision for other types
 	}
 
+	@Override
+	public boolean checkPoint(Point p) {
+		return p.copy().sub(this).sMag() <= radius * radius;
+	}
+
 	//returns the radius of this OvalCollider
 	public double getRadius() {
 		return radius;
+	}
+
+	public void setRadius(double rad) {
+		radius = rad;
 	}
 	
 	//draws an oval representing this OvalCollider

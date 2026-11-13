@@ -12,13 +12,23 @@ import fromics.Point;
 //I use this for explosion effects
 public class ParticleEffect extends Linkable {
 	private List<Particle> particles;
-	private float pLife;
-	
-	//constructs a new ParticleEffect at (x, y) with particles particles, moving at pSpeed
-	public ParticleEffect(double x, double y, int particles, int pSpeed, int pLife) {
-		super(x, y);
-		this.pLife = pLife;
+	private boolean remOnEmpty;
+
+	public ParticleEffect() {
+		super(0,0);
 		this.particles = new LinkedList<>();
+		this.remOnEmpty = false;
+	}
+	//constructs a new ParticleEffect at (x, y) with particles particles, moving at pSpeed
+	public ParticleEffect(double x, double y, int particles, double pSpeed, int pLife, boolean remOnEmpty) {
+		super(x, y);
+		this.remOnEmpty = remOnEmpty;
+		for(int i = 0; i < particles; i++) {
+			this.particles.add(new Particle(x, y, Math.random() * Math.PI * 2, (Math.random() + 0.2) * pSpeed, pLife));
+		}
+	}
+
+	public void addParticles(double x, double y, int particles, double pSpeed, int pLife) {
 		for(int i = 0; i < particles; i++) {
 			this.particles.add(new Particle(x, y, Math.random() * Math.PI * 2, (Math.random() + 0.2) * pSpeed, pLife));
 		}
@@ -31,13 +41,12 @@ public class ParticleEffect extends Linkable {
 		while(pItr.hasNext()) {
 			Particle next = pItr.next();
 			next.update();
-//			System.out.println(particles.size());
 			if(next.timer <= 0) {
 				pItr.remove();
 			}
 		}
-		if(particles.size() == 0) {
-			return true;
+		if(remOnEmpty) {
+			return particles.isEmpty();
 		}
 		return false;
 	}
@@ -45,21 +54,23 @@ public class ParticleEffect extends Linkable {
 	//draws this ParticleEffect, with each particle being a pixel which fades over time
 	@Override
 	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
-		for(Particle p : particles) {
+		for(int i = 0; i < particles.size(); i++) {
+			Particle p = particles.get(i);
 			g.setColor(p.getColor());
 			g.drawRect((int)(p.X() + xOff), (int)(p.Y() + yOff), 1, 1);
 		}
 	}
 	
-	private class Particle extends Point {
+	private static class Particle extends Point {
 		public Point vec;
 		public int timer;
+		public int life;
 		private Color c;
 		
 		public void update() {
 			add(vec);
 			timer--;
-			float val = 1f - (float)(pLife - timer) / pLife;
+			float val = 1f - (float)(life - timer) / life;
 			c = new Color(val, val, val);
 		}
 		
@@ -70,6 +81,7 @@ public class ParticleEffect extends Linkable {
 		public Particle(double x, double y, double ang, double speed, int timer) {
 			super(x, y);
 			this.timer = timer;
+			this.life = timer;
 			vec = new Point(Math.cos(ang) * speed, Math.sin(ang) * speed);
 		}
 	}

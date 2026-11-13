@@ -1,7 +1,7 @@
 package fromics;
 
 /**
- * WIP class
+ * WIP class, I might put this functionality in Point in the end
  */
 public class Quaternion {
     private double r;

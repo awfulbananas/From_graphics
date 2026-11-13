@@ -650,11 +650,46 @@ public class Point {
 	 * @return this Point
 	 */
 	public Point matrixTransform(Point iHatLoc, Point jHatLoc) {
-		double newX = Y() * jHatLoc.X() + X() * iHatLoc.X();
-		double newY = Y() * jHatLoc.Y() + X() * iHatLoc.Y();
+		double newX = X() * iHatLoc.X() + Y() * jHatLoc.X();
+		double newY = X() * iHatLoc.Y() + Y() * jHatLoc.Y();
 		setX(newX);
 		setY(newY);
 		return this;
+	}
+
+	public Point matrixTransform(Point... mattColumnVectors) {
+		if(mattColumnVectors.length != vals.length) {
+			throw new IllegalArgumentException("matrix must have the same number of columns as this Point has dimensions");
+		}
+		int length = mattColumnVectors[0].dims();
+		double[] newVals = new double[length];
+		for(int i = 0; i < length; i++) {
+			newVals[i] = 0;
+			for(int j = 0; j < mattColumnVectors.length; j++) {
+				newVals[i] += mattColumnVectors[j].vals[i] * vals[j];
+			}
+		}
+		vals = newVals;
+		return this;
+	}
+
+	public Point[] getOrthoNormalBasis() {
+		Point[] basis = new Point[vals.length];
+		basis[0] = this.copy().normalize();
+		for(int i = 1; i < basis.length; i++) {
+			double[] basisComponentVals = new double[vals.length];
+			basisComponentVals[i] = 1;
+			Point basisComponent = new Point(basisComponentVals);
+			//this is just the gram-schmidt process
+			//U_n = V_n - Proj(V_n, U_(n-1)) - ... - Proj(V_n, U_1)
+			//Proj(V,U) = U * Dot(V,U)/(|U|^2)
+			for(int j = 0; j < i; j++) {
+				basisComponent.sub(basis[j].mult(basis[j].dot(basisComponent)).div(basis[j].sMag()));
+			}
+			//I could normalize later, but why have a second loop?
+			basisComponent.normalize();
+		}
+		return basis;
 	}
 
 	/**
@@ -693,10 +728,18 @@ public class Point {
 	/**
 	 * multiplies this Point by the given Point as if
 	 * they're quaternions in the form
-	 * xi + yj + zk + w, then returns this Point
-	 *
+	 * xi + yj + zk + w, then returns this Point.
+	 * if this Point has less than four dimensions,
+	 * dimensions will be added to make it have 4 dimensions.
 	 */
 	public Point qMult(Point o) {
+		if(dims() < 4) {
+			double[] newVals = new double[4];
+			for(int i = 0; i < vals.length; i++) {
+				newVals[i] = vals[i];
+			}
+			vals = newVals;
+		}
 		setXYZW(
 				X() * o.X() - Y() * o.Y() - Z() * o.Z() - W() * o.W(),
 				X() * o.Y() + Y() * o.X() + Z() * o.W() - W() * o.Z(),
@@ -739,10 +782,8 @@ public class Point {
 	}
 
 	/**
-	 * rotates this Point counter-clockwise around the origin, using only the first two dimensions,
+	 * rotates this Point clockwise around the origin, using only the first two dimensions,
 	 * by the given angle in radians, the returns this Point.
-	 * why does getPerpendicular() go clockwise, and rot() go counter-clockwise?
-	 * arbitrary decisions I should probably change later
 	 * @param rot the number of radians to rotate by
 	 * @return this Point
 	 */
@@ -791,6 +832,13 @@ public class Point {
 		return this;
 	}
 
+	public Point rotAround(Point axis, double ang) {
+		Point cross = axis.cross3(this);
+		double dot = axis.dot(this);
+		double cos = Math.cos(ang);
+		return mult(cos).add(cross.mult(Math.sin(ang))).add(axis.copy().mult(dot * (1 - cos)));
+	}
+
 	/**
 	 * clamps the dimensions of this Point to the given minimum and maximum values,
 	 * setting each dimension to the value of min or max, if it's below min or above max
@@ -820,8 +868,8 @@ public class Point {
 	public Point toSpace(Point space) {
 		double oldX = X();
 		double oldY = Y();
-		setX(oldX * space.X() + oldY * space.Y());
-		setY(oldY * space.X() - oldX * space.Y());
+		setX(oldX * space.X() - oldY * space.Y());
+		setY(oldY * space.X() + oldX * space.Y());
 		return this;
 	}
 

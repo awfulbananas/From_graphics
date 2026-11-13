@@ -1,7 +1,12 @@
 package fromics.colliders;
 
+import fromics.Point;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+
 //a class representing a Collidable with Point collision
-public abstract class PointCollider extends Collidable {
+public class PointCollider extends Collidable {
 	
 	//creates a new PointCollider at (x, y)
 	public PointCollider(double x, double y) {
@@ -11,8 +16,8 @@ public abstract class PointCollider extends Collidable {
 	//returns the collision type of this Collidable,
 	//which is Collidable.TYPE_POINT
 	@Override
-	public int getCollisionType() {
-		return Collidable.TYPE_POINT;
+	public CollisionType getCollisionType() {
+		return CollisionType.POINT;
 	}
 	
 	//returns whether this Collidable is colliding with Collidable other
@@ -21,10 +26,20 @@ public abstract class PointCollider extends Collidable {
 	@Override
 	public boolean check(Collidable other) {
 		switch(other.getCollisionType()) {
-			case Collidable.TYPE_POINT:
+			case POINT:
 				return copy().sub(other).sMag() == 0;
 			default:
 				return other.check(this);
 		}
+	}
+
+	@Override
+	public boolean checkPoint(Point p) {
+		return equals(p);
+	}
+
+	@Override
+	protected void draw(Graphics g, BufferedImage img, double xOff, double yOff, double angOff) {
+		g.fillOval((int)X() - 1, (int)Y() - 1, 3, 3);
 	}
 }

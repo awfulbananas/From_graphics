@@ -2,8 +2,7 @@ package fromics;
 
 import fromics.events.Event;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ConcurrentModificationException;
@@ -15,6 +14,11 @@ import java.util.Set;
 
 /*TODO: * add an "IOEvent" class to unify MouseEvent and KeyEvent
 		* also unify KeypressFunction and MouseEventFunction while doing above
+		* I can remove the need to register/deregister IOeventFunctions by having them deregister on unlink and register on link, it does mean adding more data to Linkable though
+			* looking at it now it's not as bad as I remember, having LinkQueue and UnlinkQueue is still a notable amount of data though, maybe I should put those indirectly in Manager
+			* and have a LinkAction or something? I could also fix the sort of split behaviour of link and unlink by having that functionality in Manager
+			 	* maybe it should go in Background or Screens rather than Manager to prevent the wait when swapping screens, but given that it should always happen between updates maybe it's fine?
+			 	* having Backgound and Screens be larger isn't an issue in general though, I'm never instantiating them in huge numbers
 		* make said functions register using a name/id so I can un-register them even without a direct object reference
 		* consider adding an alternate system where events are sent to methods in linkables/backgrounds instead of them registering events
 		*
@@ -25,6 +29,26 @@ import java.util.Set;
 			* rendering
 			* add multiple options
 			* allow 2d & 3d simultaneously
+			* I've almost implemented a stopgap this in a different project already actually when I think about it,
+			* I could probably get away with having projection math and methods for drawing 3d stuff that takes a Graphics as an argument until I feel like doing a full custom Graphics
+		*
+		* I have basic logic for collision checking but I still have to loop it manually, maybe I should make a CollisionGroup object
+		*
+		* classes I never/rarely use, I should probablt address all of these:
+			* the collision stuff, but that's project dependant and it'll be improved if/when I make a CollisionGroup
+			* Hidden, when have I really ever use this, I usually just have a boolean flag and an early return from draw() as relevant
+			* IteratorTree, this really is mostly useless, if I decide I need to keep it I should make a utils module and honestly Point should go there too
+			* Matt, moreso because it isn't functional yet than it actually not being useful though, it should also go in a utils module
+			* all the stuff in files, I recently re-wrote an xml parse because I forgot it was there though, if my new code is better I should sub it in
+			* a generalized FileReader with a 1 char memory should go there as well it's super useful
+			* effects, but really I should maybe have a separate FromGame library that builds on Fromics rather than pile everything in here
+			* TextElement, but I probably *should* use it more since again I recently rewrote multi-line rendering code and I really don't have to
+			* Texture and TextureCache
+			* Sound, but that's more to do with how I don't use sfx much, I do need sound in my current project but I need a more powerful class than Sound,
+			* maybe I could break this off into it's own library dependant on whatever other sound libraries I need, and maybe not dependant on fromics if I can get away with it
+			* tools, FOntPallete isn't useless but it should be it's own project (and I should give it scrolling and/or ui and better functionality like viewing bold/italic, different font sizes and typing text to see rendered)
+		*
+		* I do need to eventually come up with a different name, and if I do break of a separate game library also a naming *scheme* for my libraries and projects
  */
 
 /**
@@ -270,6 +294,14 @@ public abstract class Linkable extends Point {
 	 */
 	public Point getMousePos(MouseEvent e) {
 		return new Point(e.getX(), e.getY());
+	}
+
+	/**
+	 * sets the current mouse cursor to the one associated with the given Cursor object
+	 * @param c the Cursor to set the mouse cursor to
+	 */
+	public void setCursor(Cursor c) {
+		parent.setCursor(c);
 	}
 
 	/**
@@ -586,7 +618,6 @@ public abstract class Linkable extends Point {
 	 * @param relativeY the y location to draw relative to
 	 */
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, int size, double[] relativeX, double[] relativeY) {
-		g.setColor(Color.WHITE);
 		int[] xLocs = new int[relativeX.length];
 		int[] yLocs = new int[relativeX.length];
 
@@ -647,10 +678,8 @@ public abstract class Linkable extends Point {
 	 */
 	protected static void drawPoints(Graphics g, double totalX, double totalY, double totalAng, double size, Point[] points, boolean closed) {
 		Point[] newPoints = new Point[points.length];
-		Point newXLoc = (new Point(-1, 0)).rot(totalAng).mult(size);
-		Point newYLoc = newXLoc.getPerpendicular();
 		for(int i = 0; i < points.length; i++) {
-			newPoints[i] = points[i].copy().matrixTransform(newXLoc, newYLoc).add(totalX, totalY);
+			newPoints[i] = points[i].copy().rot(totalAng).mult(size).add(totalX, totalY);
 		}
 		int[] xLocs = new int[points.length];
 		int[] yLocs = new int[points.length];

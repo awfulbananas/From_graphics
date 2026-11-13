@@ -1,0 +1,8 @@
+.idea
+.settings
+bin
+bin/*
+From.iml
+.project
+.DS_Store
+*/.DS_Store

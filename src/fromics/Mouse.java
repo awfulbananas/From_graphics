@@ -12,7 +12,9 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 	private final Queue<MouseEvent> mouseEventQueue;
 	private final List<MouseEventFunction> mouseEventFunctions;
 	private final Set<Integer> codes;
+
 	private boolean mouseInWindow;
+	private long prevMouseDownTime;
 	
 	public Mouse(Frindow win) {
 		this.win = win;
@@ -81,6 +83,10 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 		}
 	}
 
+	public long lastPressTime() {
+		return prevMouseDownTime;
+	}
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		super.mouseClicked(e);
@@ -92,6 +98,7 @@ public class Mouse extends MouseAdapter implements MouseListener, MouseWheelList
 		super.mousePressed(e);
 		codes.add(e.getButton());
 		mouseEventQueue.add(e);
+		prevMouseDownTime = System.currentTimeMillis();
 	}
 
 	@Override

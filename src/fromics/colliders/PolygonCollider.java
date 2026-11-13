@@ -6,7 +6,7 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
 //a class representing a Collidable with polygon collision
-public abstract class PolygonCollider extends Collidable {
+public class PolygonCollider extends Collidable {
 	private Point[] shape;
 	Point maxBounds;
 	Point minBounds;
@@ -32,6 +32,10 @@ public abstract class PolygonCollider extends Collidable {
 		this.size = size;
 		shape = new Point[locs.length];
 		for(int i = 0; i < locs.length; i++) shape[i] = locs[i].copy().mult(size);
+	}
+
+	public Point[] getShape() {
+		return shape;
 	}
 
 	private void calcBounds() {
@@ -62,10 +66,16 @@ public abstract class PolygonCollider extends Collidable {
 		super(x, y);
 		init(xVals, yVals, size);
 	}
+
+	//constructs a new PolygonCollider at (x, y) with points (xVals, yVals) scaled by size
+	public PolygonCollider(double x, double y, Point[] vals, double size) {
+		super(x, y);
+		init(vals, size);
+	}
 	
 	//returns whether the shape of this polygon contains Point p
 	public boolean shapeContains(Point p) {
-		p = p.copy().rot(-ang);
+		p = p.copy().sub(this).rot(-ang);
 		int intersections = 0;
 		
 		Point prev = shape[shape.length - 1];
@@ -108,8 +118,8 @@ public abstract class PolygonCollider extends Collidable {
 	//returns the collision type of this Collidable
 	//which is Collidable.TYPE_POLYGON
 	@Override
-	public int getCollisionType() {
-		return Collidable.TYPE_POLYGON;
+	public CollisionType getCollisionType() {
+		return CollisionType.POLYGON;
 	}
 
 
@@ -118,11 +128,16 @@ public abstract class PolygonCollider extends Collidable {
 	@Override
 	public boolean check(Collidable other) {
 		return switch(other.getCollisionType()) {
-			case Collidable.TYPE_POINT -> shapeContains(other.copy().sub(this));
-			case Collidable.TYPE_POLYGON, Collidable.TYPE_RECT -> checkPolygon((PolygonCollider) other);
-			case Collidable.TYPE_OVAL -> checkCircle((CircleCollider) other);
+			case POINT -> shapeContains(other.copy().sub(this));
+			case POLYGON, RECT -> checkPolygon((PolygonCollider) other);
+			case OVAL -> checkCircle((CircleCollider) other);
 			default -> false;
 		};
+	}
+
+	@Override
+	public boolean checkPoint(Point p) {
+		return shapeContains(p);
 	}
 
 	public boolean checkPolygon(PolygonCollider other) {
@@ -136,7 +151,7 @@ public abstract class PolygonCollider extends Collidable {
 	}
 
 	public boolean checkCircle(CircleCollider other) {
-		double rad = ((CircleCollider) other).getRadius();
+		double rad = other.getRadius();
 		Point relLoc = other.copy().sub(this);
 		//for each consecutive pair of points in the collision box, compare the line they make
 		//with the line the circle collider makes with the center of the shape
@@ -185,7 +200,7 @@ public abstract class PolygonCollider extends Collidable {
 	}
 	
 	//draws the Collider of this PolygonCollider using Graphics g
-	protected void drawCollider(Graphics g, double xOff, double yOff, double angOff) {
+	public void drawCollider(Graphics g, double xOff, double yOff, double angOff) {
 		drawPoints(g, xOff + X(), yOff + Y(), angOff, 1, shape);
 	}
 
