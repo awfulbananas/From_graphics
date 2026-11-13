@@ -1,8 +1,7 @@
 .idea
 .settings
 bin
-bin/*
+.classpath
 From.iml
 .project
 .DS_Store
-*/.DS_Store
